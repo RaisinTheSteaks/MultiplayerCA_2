@@ -1,0 +1,314 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Animation.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BloomEffect.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Command.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Container.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DataTables.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterNode.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GameOverState.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GameState.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Gun.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Island.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Label.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuState.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicPlayer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NewEffect.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleNode.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PauseState.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Pickup.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PostEffect.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Projectile.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneNode.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingsState.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Ship.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundNode.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundPlayer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteNode.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="State.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="StateStack.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TextNode.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleState.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ActionID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="BloomEffect.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="CategoryID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Command.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Container.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DataTables.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterNode.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="FontID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="GameOverState.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="GameState.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Gun.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Island.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="IslandID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Label.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuState.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MissionStatusID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicPlayer.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="NewEffect.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Particle.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleNode.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PauseState.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Pickup.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PickupID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PostEffect.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Projectile.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectileID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHolder.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceIdentifiers.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneNode.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingsState.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Ship.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="ShipID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundEffectID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundNode.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundPlayer.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteNode.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="State.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="StateID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="StateStack.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="StateStackActionID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="TextNode.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleState.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="World.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ResourceHolder.inl">
+      <Filter>Header</Filter>
+    </None>
+    <None Include="Utility.inl">
+      <Filter>Header</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header">
+      <UniqueIdentifier>{28368da1-d1bf-46c9-ac65-622a5cedc3dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{7e68a31e-4f6e-41ed-83e4-31d6467df411}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

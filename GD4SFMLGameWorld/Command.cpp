@@ -6,4 +6,5 @@ D00183790
 
 Command::Command() : action(), category(static_cast<int>(CategoryID::None))
 {
+	//cOMMENT
 }

@@ -142,6 +142,9 @@ void World::loadTextures()
 	mTextures.load(TextureID::Battleship, "Media/Textures/Battleship/ShipBattleshipHullTest.png");
 	mTextures.load(TextureID::BattleshipGun, "Media/Textures/Battleship/WeaponBattleshipStandardGun.png");
 	mTextures.load(TextureID::Island, "Media/Textures/Island/Island.png");
+
+	mTextures.load(TextureID::FrigateForward, "Media/Textures/RomanShips/forwardFrigate.png");
+	mTextures.load(TextureID::ShipForward, "Media/Textures/RomanShips/ShipSpriteSheet.png");
 }
 
 bool matchesCategories(SceneNode::Pair& colliders, CategoryID type1, CategoryID type2)

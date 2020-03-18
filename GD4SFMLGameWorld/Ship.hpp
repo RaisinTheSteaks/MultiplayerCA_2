@@ -88,4 +88,7 @@ private:
 	*/
 	sf::Vector2f mDirectionVec;
 	std::array<Gun*,2>mGuns;
+
+
+	Animation mForward;
 };

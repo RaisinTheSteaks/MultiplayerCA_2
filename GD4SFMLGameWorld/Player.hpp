@@ -36,4 +36,7 @@ private:
 	std::map<ActionID, Command> mActionBinding;
 	MissionStatusID mCurrentMissionStatus;
 	PlayerID mType;
+
+
+
 };

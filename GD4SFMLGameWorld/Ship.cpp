@@ -247,6 +247,26 @@ void Ship::setDirectionVec(sf::Vector2f dir)
 	mDirectionVec = dir;
 }
 
+float Ship::getAcceleration()
+{
+	return curAccel;
+}
+
+void Ship::setAcceleration(float accel)
+{
+	curAccel = accel;
+}
+
+float Ship::getSpeed()
+{
+	return this->speed;
+}
+
+void Ship::setSpeed(float speed)
+{
+	this->speed = speed;
+}
+
 void Ship::fire()
 {
 	// Only ships with fire interval != 0 are able to fire

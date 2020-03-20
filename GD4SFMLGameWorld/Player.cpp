@@ -29,7 +29,7 @@ struct ShipMover
 	{
 		float yVel = 0.f;
 		//Citation
-		/* 
+		/*
 		Joshua  Corcoran
 		D00190830
 		____________
@@ -40,41 +40,88 @@ struct ShipMover
 		/*
 		Calculating the radians of the current rotation, and then cos/sin (ing) the angle to find the distance you need to move in each angle
 		*/
+
+		sf::Vector2f velocity = sf::Vector2f();
+
+#pragma region Handle Moving
+		/*
+		1) Is the player accelerating/decelerating/not changing acceleration
+		2) Is the player at/below their ships min/max speed?
+		3) Accelerate accordingly
+		4) Set velocity
+		5) Apply velocity in direction
+
+		*/
 		float curRot = Ship.getRotation();
-		float pi = 3.14159265;
-		sf::Vector2f velocity;
-		
-		if (acceleration < 0)
+		float pi = 3.14159265f;
+
+		float cosElement = cos(curRot*pi / 180);
+		float sinElement = sin(curRot*pi / 180);
+		float curSpeed = Ship.getSpeed();
+
+		//Are they accelerating
+		if (acceleration > 0)
 		{
-			velocity.y = cos(curRot*pi / 180) * 1;
-			velocity.x = sin(curRot*pi / 180) * -1;
+			if (curSpeed < Ship.getMaxSpeed())
+			{
+				Ship.setSpeed(curSpeed + acceleration);
+			}
 		}
-		else if (acceleration > 0)
+		//Are they decelerating
+		else if (acceleration < 0)
 		{
-			velocity.y = cos(curRot*pi / 180)*-1;
-			velocity.x = sin(curRot*pi / 180) * 1;
+			//Want to cap the player's reverse speed at half their max speed
+			if (curSpeed > (Ship.getMaxSpeed() * -0.5f))
+			{
+				Ship.setSpeed(curSpeed + acceleration);
+			}
 		}
 
-		//Trying to get a slow deceleration
-		/*else if (acceleration== 0)
+
+#pragma region Speed
+		
+		int xPositive = 0, yPositive = 0;
+		//Moving Backwards
+		if (curSpeed < 0)
 		{
-			velocity = Ship.getDirectionVec() - (Ship.getDirectionVec()*0.1f);
+			yPositive = 1;
+			xPositive = -1;
 		}
-*/
+		//Moving Forward
+		else if (curSpeed > 0)
+		{
+			yPositive = -1;
+			xPositive = 1;
+		}
+		//maintaining speed
+		else
+		{
+			yPositive = -1;
+			xPositive = 1;
+		}
+#pragma endregion 
+		velocity.y = cosElement * curSpeed * yPositive;
+		velocity.x = sinElement * curSpeed * xPositive;
+
+#pragma endregion Handle Acceleration
+#pragma region Handle Rotation
+
+
 		if (rotation > 0)
 		{
-			Ship.setRotation(Ship.getRotation() + Ship.getTurnSpeed());
+			Ship.setRotation(curRot + Ship.getTurnSpeed());
 			Ship.getBoundingRect();
 
 		}
 		else if (rotation < 0)
 		{
-			Ship.setRotation(Ship.getRotation() - Ship.getTurnSpeed());
+			Ship.setRotation(curRot - Ship.getTurnSpeed());
 			Ship.getBoundingRect();
 		}
-		//std::cout << "Curr X [" << velocity.x << "] Curr Y [" << velocity.y << "]\n";
+#pragma endregion
 
-		Ship.accelerate(velocity*Ship.getMaxSpeed());
+		
+		Ship.accelerate(velocity * Ship.getMaxSpeed());
 		Ship.setDirectionVec(velocity);
 	}
 	float rotation, acceleration;

@@ -50,11 +50,12 @@ std::vector<IslandData> initializeIslandData()
 
 std::vector<ShipData> initializeShipData()
 {
+	//TODO - Change this for better multiplayer
 	float playerSpeed = 125.f;
 	int playerFireRate = 3;
 	std::vector<ShipData> data(static_cast<int>(ShipID::TypeCount));
 	data[static_cast<int>(ShipID::Battleship)].hitpoints = 100;
-	data[static_cast<int>(ShipID::Battleship)].speed = playerSpeed;
+	data[static_cast<int>(ShipID::Battleship)].speed = playerSpeed / 10;
 	data[static_cast<int>(ShipID::Battleship)].fireInterval = sf::seconds(playerFireRate);
 	data[static_cast<int>(ShipID::Battleship)].textureRect = sf::IntRect(0, 0, 25, 169);
 	data[static_cast<int>(ShipID::Battleship)].texture = TextureID::Battleship;
@@ -62,7 +63,7 @@ std::vector<ShipData> initializeShipData()
 	data[static_cast<int>(ShipID::Battleship)].turnSpeed = 0.7f;
 
 	data[static_cast<int>(ShipID::Battleship2)].hitpoints = 100;
-	data[static_cast<int>(ShipID::Battleship2)].speed = playerSpeed;
+	data[static_cast<int>(ShipID::Battleship2)].speed = playerSpeed / 10;
 	data[static_cast<int>(ShipID::Battleship2)].fireInterval = sf::seconds(playerFireRate);
 	data[static_cast<int>(ShipID::Battleship2)].textureRect = sf::IntRect(0, 0, 25, 169);
 	data[static_cast<int>(ShipID::Battleship2)].texture = TextureID::Battleship;

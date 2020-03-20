@@ -115,6 +115,9 @@
     <ClCompile Include="World.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="MultiplayerGameState.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionID.hpp">
@@ -292,6 +295,12 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="World.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiplayerGameState.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkProtocol.hpp">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>

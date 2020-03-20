@@ -48,6 +48,7 @@ public:
 	bool hasAlivePlayer2() const;
 	bool hasPlayerReachedEnd() const;
 	void updateSounds();
+	sf::FloatRect getViewBounds() const;
 
 private:
 	void loadTextures();
@@ -56,13 +57,8 @@ private:
 	void adaptPlayerVelocity();
 	void handleCollisions();
 
-
-	void spawnEnemies();
-	void addEnemies();
-	void addEnemy(ShipID type, float relX, float relY);
-
 	sf::FloatRect getBattlefieldBounds() const;
-	sf::FloatRect getViewBounds() const;
+	
 
 	void destroyEntitiesOutsideView();
 

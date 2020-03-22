@@ -420,6 +420,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	//
 	case static_cast<int>(Server::PacketType::AcceptCoopPartner):
 	{
+		//TODO -read spawn position x and y
 		sf::Int32 shipIdentifier;
 		packet >> shipIdentifier;
 
@@ -457,7 +458,10 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 			itr->second->handleNetworkRealtimeChange(static_cast<ActionID>(action), actionEnabled);
 	} break;
 
-
+	case static_cast<int>(Server::PacketType::GameOver) :
+	{
+		requestStackPush(StateID::GameOver);
+	} break;
 	// Pickup created
 	case static_cast<int>(Server::PacketType::SpawnPickup):
 	{

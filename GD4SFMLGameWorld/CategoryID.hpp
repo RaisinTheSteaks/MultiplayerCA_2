@@ -21,6 +21,7 @@ enum class CategoryID
 	SoundEffect = 1 << 10,
 	Gun = 1 << 11,
 	Island1 = 1 << 12,
+	Network = 1 << 13,
 	
 
 	Ship = PlayerShip | Player2Ship | AlliedShip | EnemyShip,

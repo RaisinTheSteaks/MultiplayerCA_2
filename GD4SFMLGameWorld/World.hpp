@@ -21,6 +21,8 @@ D00183790
 #include "Island.hpp"
 #include "IslandID.hpp"
 #include "NewEffect.hpp"
+#include "NetworkProtocol.hpp"
+#include "GameActionID.hpp"
 
 #include "SFML/System/NonCopyable.hpp"
 #include "SFML/Graphics/View.hpp"
@@ -28,7 +30,7 @@ D00183790
 
 #include <array>
 
-
+class NetworkNode;
 //Forward declaration
 namespace sf
 {
@@ -39,16 +41,22 @@ namespace sf
 class World : private sf::NonCopyable
 {
 public:
-	explicit World(sf::RenderTarget& outputTarget, FontHolder& fonts, SoundPlayer& sounds);
+	explicit World(sf::RenderTarget& outputTarget, FontHolder& fonts, SoundPlayer& sounds, bool networked);
 	void update(sf::Time dt);
 	void draw();
 	CommandQueue& getCommandQueue();
 	bool hasAlivePlayer() const;
-	bool hasAlivePlayer1() const;
-	bool hasAlivePlayer2() const;
 	bool hasPlayerReachedEnd() const;
 	void updateSounds();
 	sf::FloatRect getViewBounds() const;
+	Ship* getShip(int identifier) const;
+	Ship* addShip(int identifier);
+	void removeShip(int identifier);
+
+	//void setCurrentBattleFieldPosition(float lineY);
+	//void setWorldHeight(float height);
+
+	bool pollGameAction(Action& out);
 
 private:
 	void loadTextures();
@@ -94,7 +102,7 @@ private:
 	sf::Vector2f mSpawnPosition;
 	std::array<sf::Vector2f, 2>mSpawnPositions;
 	float mScrollSpeed;
-	Ship* mPlayerShip;
+	
 	/*
 	Joshua Corcoran
 	D00190830
@@ -105,11 +113,13 @@ private:
 	May possibly change the number of guns on each ship
 	*/
 	std::array<Gun*,2>mPlayerGuns;
-	Ship* mPlayerShip2;
+	std::vector<Ship*> mPlayerShip;
 	std::array<Island*,3>mIsland;
 	std::vector<SpawnPoint>	mEnemySpawnPoints;
 	std::vector<Ship*> mActiveEnemies;
 
 	BloomEffect	mBloomEffect;
+	bool mNetworkedWorld;
+	NetworkNode* mNetworkNode;
 	NewEffect mNewEffect;
 };

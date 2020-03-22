@@ -150,7 +150,9 @@
     <ClInclude Include="EmitterNode.hpp" />
     <ClInclude Include="Entity.hpp" />
     <ClInclude Include="FontID.hpp" />
+    <ClInclude Include="GameActionID.hpp" />
     <ClInclude Include="GameOverState.hpp" />
+    <ClInclude Include="GameServer.hpp" />
     <ClInclude Include="GameState.hpp" />
     <ClInclude Include="Gun.hpp" />
     <ClInclude Include="Island.hpp" />
@@ -162,6 +164,7 @@
     <ClInclude Include="MultiplayerGameState.hpp" />
     <ClInclude Include="MusicID.hpp" />
     <ClInclude Include="MusicPlayer.hpp" />
+    <ClInclude Include="NetworkNode.hpp" />
     <ClInclude Include="NetworkProtocol.hpp" />
     <ClInclude Include="NewEffect.hpp" />
     <ClInclude Include="OptionID.hpp" />
@@ -210,6 +213,7 @@
     <ClCompile Include="EmitterNode.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="GameOverState.cpp" />
+    <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="Gun.cpp" />
     <ClCompile Include="Island.cpp" />
@@ -218,6 +222,7 @@
     <ClCompile Include="MenuState.cpp" />
     <ClCompile Include="MultiplayerGameState.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
+    <ClCompile Include="NetworkNode.cpp" />
     <ClCompile Include="NewEffect.cpp" />
     <ClCompile Include="ParticleNode.cpp" />
     <ClCompile Include="PauseState.cpp" />

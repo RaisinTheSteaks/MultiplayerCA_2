@@ -17,6 +17,7 @@ namespace Server
 		PlayerEvent, //The takes two sf::Int32, the aircraft identifier and the action identifier as declared in ActionID.hpp. 
 		PlayerRealtimeChange, //The same as PlayerEvent but for real time actions. This means we are changing an ongoing state so add a Boolean value to the parameters
 		PlayerConnect, //The as SpawnSelf but indicates that an aircraft from a different machine is entering the world.
+		//Send ShipIdentifier, pos x and pos y
 		PlayerDisconnect, //Sends one sf::Int32 with identifier for aircraft that has diconnected
 		AcceptCoopPartner, //This is used to tell the client that it can spawn a second player. It needs sf::Int32 with id for new plane and two float values with the position of the aircraft
 		SpawnPickup, //sf::Int32 with type of pickup, 2 floats for position

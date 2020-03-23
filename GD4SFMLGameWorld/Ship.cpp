@@ -16,6 +16,8 @@ D00183790
 #include "ShipID.hpp"
 #include "ProjectileID.hpp"
 #include "PickupID.hpp"
+#include "NetworkNode.hpp"
+
 
 #include <cmath>
 
@@ -64,6 +66,9 @@ Ship::Ship(ShipID type, const TextureHolder& textures, const FontHolder& fonts)
 	, mGuns()
 	, mDirectionVec(0.f,0.f)	//Added to store direction
 	, mForward(textures.get(Table[static_cast<int>(mType)].forward))
+	, mIdentifier(0)
+	, mPickupsEnabled(true)
+	, mExplosionBegan(false)
 {
 
 
@@ -204,6 +209,27 @@ sf::FloatRect Ship::getBoundingRect() const
 bool Ship::isMarkedForRemoval() const
 {
 	return isDestroyed() && (mExplosion.isFinished() || !mShowExplosion);
+}
+
+void Ship::remove()
+{
+	Entity::remove();
+	mShowExplosion = false;
+}
+
+void Ship::disablePickups()
+{
+	mPickupsEnabled = false;
+}
+
+void Ship::setIdentifier(int identifier)
+{
+	mIdentifier = identifier;
+}
+
+int Ship::getIdentifier() const
+{
+	return mIdentifier;
 }
 
 bool Ship::isAllied() const

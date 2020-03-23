@@ -53,8 +53,10 @@ public:
 	Ship* addShip(int identifier);
 	void removeShip(int identifier);
 
+	void createPickup(sf::Vector2f position, PickupID type);
+
 	//void setCurrentBattleFieldPosition(float lineY);
-	//void setWorldHeight(float height);
+	void setWorldHeight(float height);
 
 	bool pollGameAction(Action& out);
 

@@ -113,12 +113,17 @@ Ship* World::getShip(int identifier) const
 	return nullptr;
 }
 
+void World::setWorldHeight(float height)
+{
+	mWorldBounds.height = height;
+}
+
 Ship* World::addShip(int identifier)
 {
 	std::unique_ptr<Ship> player(new Ship(ShipID::Battleship, mTextures, mFonts));
 
 	//TODO - custom spawning points
-	player->setPosition(mCamera.getCenter);
+	player->setPosition(mCamera.getCenter());
 	player->setIdentifier(identifier);
 
 	mPlayerShip.push_back(player.get());
@@ -134,6 +139,14 @@ void World::removeShip(int identifier)
 		ship->destroy();
 		mPlayerShip.erase(std::find(mPlayerShip.begin(), mPlayerShip.end(), ship));
 	}
+}
+
+void World::createPickup(sf::Vector2f position, PickupID type)
+{
+	std::unique_ptr<Pickup> pickup(new Pickup(type, mTextures));
+	pickup->setPosition(position);
+	pickup->setVelocity(0.f, 1.f);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(pickup));
 }
 
 bool World::hasAlivePlayer() const

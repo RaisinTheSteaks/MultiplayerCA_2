@@ -124,6 +124,9 @@
     <ClCompile Include="NetworkNode.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="KeyBinding.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionID.hpp">
@@ -316,6 +319,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="GameActionID.hpp">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyBinding.hpp">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>

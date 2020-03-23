@@ -7,8 +7,10 @@ D00183790
 #include "ActionID.hpp"
 #include "MissionStatusID.hpp"
 #include "PlayerID.hpp"
+#include "KeyBinding.hpp"
 
 #include <SFML/Window/Event.hpp>
+#include <SFML/Network/TcpSocket.hpp>
 #include <map>
 
 class CommandQueue;
@@ -16,24 +18,31 @@ class CommandQueue;
 class Player
 {
 public:
-	Player(PlayerID type);
+	Player(sf::TcpSocket* socket, sf::Int32 identifier, const KeyBinding* binding);
 
 	void handleEvent(const sf::Event& event, CommandQueue& commands);
 	void handleRealtimeInput(CommandQueue& commands);
 
-	void assignKey(ActionID action, sf::Keyboard::Key key);
-	sf::Keyboard::Key getAssignedKey(ActionID action) const;
+	void handleRealtimeNetworkInput(CommandQueue& commands);
+	// React to events or realtime state changes received over the network
+	void handleNetworkEvent(ActionID action, CommandQueue& commands);
+	void handleNetworkRealtimeChange(ActionID action, bool actionEnabled);
 
 	void setMissionStatus(MissionStatusID status);
 	MissionStatusID getMissionStatus() const;
 
-private:
-	void initializeActions();
-	static bool isRealtimeAction(ActionID action);
+	void disableAllRealtimeActions();
+	bool isLocal() const;
 
 private:
-	std::map<sf::Keyboard::Key, ActionID> mKeyBinding;
+	void initializeActions();
+
+private:
+	const KeyBinding* mKeyBinding;
 	std::map<ActionID, Command> mActionBinding;
+	std::map<ActionID, bool> mActionProxies;
 	MissionStatusID mCurrentMissionStatus;
-	PlayerID mType;
+	int mIdentifier;
+	sf::TcpSocket* mSocket;
+
 };

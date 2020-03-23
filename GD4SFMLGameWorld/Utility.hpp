@@ -5,6 +5,7 @@ D00183790
 #pragma once
 #include <sstream>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include "Animation.hpp"
 namespace sf
 {
@@ -16,6 +17,8 @@ namespace sf
 
 template<typename T>
 std::string toString(const T& value);
+// Convert enumerators to strings
+std::string	toString(sf::Keyboard::Key key);
 
 void centreOrigin(sf::Sprite& sprite);
 void centreOrigin(sf::Text& text);

@@ -23,6 +23,12 @@ public:
 
 	virtual bool isMarkedForRemoval() const;
 
+	virtual void remove();
+	void disablePickups();
+
+	void setIdentifier(int identifier);
+	int getIdentifier() const;
+
 	ShipID getType();
 	void addGun(Gun* gun);
 
@@ -34,11 +40,11 @@ public:
 	void increaseFireRate();
 	void increaseSpread();
 	void collectMissiles(unsigned int count);
-
+	
 	void playerLocalSound(CommandQueue& command, SoundEffectID effect);
-
 	sf::Vector2f getDirectionVec();
 	void setDirectionVec(sf::Vector2f dir);
+
 private:
 	virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
 	virtual void updateCurrent(sf::Time dt, CommandQueue& commands);
@@ -88,4 +94,10 @@ private:
 	*/
 	sf::Vector2f mDirectionVec;
 	std::array<Gun*,2>mGuns;
+
+	bool mPickupsEnabled;
+	bool mExplosionBegan;
+	int mIdentifier;
+
+	Animation mForward;
 };

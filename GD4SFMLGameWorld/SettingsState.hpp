@@ -27,11 +27,11 @@ public:
 
 private:
 	void updateLabels();
-	void addButtonLabel(ActionID action, float y, const std::string& text, Context context);
+	void addButtonLabel(std::size_t index, std::size_t x, std::size_t y, const std::string& text, Context context);
 
 private:
 	sf::Sprite mBackgroundSprite;
 	GUI::Container mGUIContainer;
-	std::array<GUI::Button::Ptr, static_cast<int>(ActionID::ActionCount)> mBindingButtons;
-	std::array<GUI::Label::Ptr, static_cast<int>(ActionID::ActionCount)> mBindingLabels;
+	std::array<GUI::Button::Ptr, 2 * static_cast<int>(ActionID::ActionCount)> mBindingButtons;
+	std::array<GUI::Label::Ptr, 2 * static_cast<int>(ActionID::ActionCount)> mBindingLabels;
 };

@@ -55,6 +55,7 @@ struct ShipData
 	sf::Time fireInterval;
 	std::vector<Direction> directions;
 	bool hasRollAnimation;
+	TextureID forward;
 };
 
 struct ProjectileData

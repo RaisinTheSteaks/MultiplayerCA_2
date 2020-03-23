@@ -33,10 +33,12 @@ private:
 	sf::RenderWindow mWindow;
 	TextureHolder mTextures;
 	FontHolder mFonts;
-	Player mPlayer;
-	Player mPlayer2;
+
 	MusicPlayer mMusic;
 	SoundPlayer mSoundPlayer;
+
+	KeyBinding mKeyBinding1;
+	KeyBinding mKeyBinding2;
 
 	StateStack mStateStack;
 

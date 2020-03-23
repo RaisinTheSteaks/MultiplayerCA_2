@@ -8,8 +8,11 @@ enum class StateID
 	None,
 	Title,
 	Menu,
-	Game, 
+	Game,
 	Pause,
 	Settings,
-	GameOver
+	GameOver,
+	NetworkPause,
+	HostGame,
+	JoinGame
 };

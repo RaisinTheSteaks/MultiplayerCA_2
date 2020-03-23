@@ -16,6 +16,8 @@ D00183790
 #include "ShipID.hpp"
 #include "ProjectileID.hpp"
 #include "PickupID.hpp"
+#include "NetworkNode.hpp"
+
 
 #include <cmath>
 
@@ -63,11 +65,23 @@ Ship::Ship(ShipID type, const TextureHolder& textures, const FontHolder& fonts)
 	, mMissileDisplay(nullptr)
 	, mGuns()
 	, mDirectionVec(0.f,0.f)	//Added to store direction
+	, mForward(textures.get(Table[static_cast<int>(mType)].forward))
+	, mIdentifier(0)
+	, mPickupsEnabled(true)
+	, mExplosionBegan(false)
 {
+
+
+	mForward.setFrameSize(sf::Vector2i(80,80));
+	mForward.setNumFrames(3);
+	mForward.setDuration(sf::seconds(0.5));
+	mForward.setRepeating(true);
+
 	mExplosion.setFrameSize(sf::Vector2i(256, 256));
 	mExplosion.setNumFrames(16);
 	mExplosion.setDuration(sf::seconds(1));
 
+	centreOrigin(mForward);
 	centreOrigin(mSprite);
 	centreOrigin(mExplosion);
 
@@ -117,6 +131,8 @@ void Ship::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if (isDestroyed() && mShowExplosion)
 		target.draw(mExplosion, states);
+	else if (getVelocity().y != 0 || getVelocity().x != 0)
+		target.draw(mForward, states);
 	else
 		target.draw(mSprite, states);
 }
@@ -138,6 +154,10 @@ void Ship::updateCurrent(sf::Time dt, CommandQueue& commands)
 			mPlayedExplosionSound = true;
 		}
 		return;
+	}
+	else if (getVelocity().y != 0 || getVelocity().x != 0)
+	{
+		mForward.update(dt);
 	}
 
 	// Check if bullets or missiles are fired
@@ -189,6 +209,27 @@ sf::FloatRect Ship::getBoundingRect() const
 bool Ship::isMarkedForRemoval() const
 {
 	return isDestroyed() && (mExplosion.isFinished() || !mShowExplosion);
+}
+
+void Ship::remove()
+{
+	Entity::remove();
+	mShowExplosion = false;
+}
+
+void Ship::disablePickups()
+{
+	mPickupsEnabled = false;
+}
+
+void Ship::setIdentifier(int identifier)
+{
+	mIdentifier = identifier;
+}
+
+int Ship::getIdentifier() const
+{
+	return mIdentifier;
 }
 
 bool Ship::isAllied() const

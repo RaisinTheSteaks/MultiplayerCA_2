@@ -20,5 +20,7 @@ enum class TextureID
 	CruiserGun,
 	Ocean,
 	Island,
-	Island2
+	Island2,
+	FrigateForward,
+	ShipForward
 };

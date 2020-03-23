@@ -7,13 +7,15 @@ D00190830
 #include "World.hpp"
 #include "ParticleID.hpp"
 #include "ParticleNode.hpp"
+#include "NetworkNode.hpp"
+
 #include <SFML/Graphics/RenderWindow.hpp>
 
 #include <iostream>
 
 #include "EmitterNode.hpp"
 
-World::World(sf::RenderTarget& outputTarget, FontHolder& fonts, SoundPlayer& sounds)
+World::World(sf::RenderTarget& outputTarget, FontHolder& fonts, SoundPlayer& sounds, bool networked)
 	: mTarget(outputTarget)
 	, mSceneTexture()
 	, mCamera(outputTarget.getDefaultView())
@@ -25,13 +27,14 @@ World::World(sf::RenderTarget& outputTarget, FontHolder& fonts, SoundPlayer& sou
 	, mWorldBounds(0.f, 0.f, mCamera.getSize().x, 5000.f)
 	, mSpawnPosition(mCamera.getSize().x / 2.f, mWorldBounds.height - mCamera.getSize().y / 2.f)
 	, mScrollSpeed(-50.f)
-	, mPlayerShip(nullptr)
+	, mPlayerShip()
 	, mPlayerGuns()
-	, mPlayerShip2(nullptr)
+	, mNetworkedWorld(networked)
 	, mIsland()
 	, mEnemySpawnPoints()
 	, mActiveEnemies()
 	, mSpawnPositions()
+	, mNetworkNode(nullptr)
 {
 	mSceneTexture.create(mTarget.getSize().x, mTarget.getSize().y);
 	loadTextures();
@@ -47,8 +50,10 @@ void World::update(sf::Time dt)
 	//mCamera.move(0.f, mScrollSpeed * dt.asSeconds());
 	
 	//both players velocity is reset
-	mPlayerShip->setVelocity(0.f, 0.f);
-	mPlayerShip2->setVelocity(0.f, 0.f);
+	for (Ship* s : mPlayerShip)
+	{
+		s->setVelocity(0.f, 0.f);
+	}
 	// Setup commands to destroy entities, and guide missiles
 	destroyEntitiesOutsideView();
 	guideMissiles();
@@ -61,9 +66,12 @@ void World::update(sf::Time dt)
 	// Collision detection and response (may destroy entities)
 	handleCollisions();
 
+	auto firstToRemove = std::remove_if(mPlayerShip.begin(), mPlayerShip.end(), std::mem_fn(&Ship::isMarkedForRemoval));
+	mPlayerShip.erase(firstToRemove, mPlayerShip.end());
+
 	// Remove all destroyed entities, create new ones
 	mSceneGraph.removeWrecks();
-	spawnEnemies();
+
 
 	// Regular update step, adapt position (correct if outside view)
 	mSceneGraph.update(dt, mCommandQueue);
@@ -95,36 +103,100 @@ CommandQueue& World::getCommandQueue()
 	return mCommandQueue;
 }
 
+Ship* World::getShip(int identifier) const
+{
+	for (Ship* s : mPlayerShip)
+	{
+		if (s->getIdentifier() == identifier)
+			return s;
+	}
+	return nullptr;
+}
+
+void World::setWorldHeight(float height)
+{
+	mWorldBounds.height = height;
+}
+
+Ship* World::addShip(int identifier)
+{
+	std::unique_ptr<Ship> player(new Ship(ShipID::Battleship, mTextures, mFonts));
+
+	//TODO - custom spawning points
+	player->setPosition(mCamera.getCenter());
+	player->setIdentifier(identifier);
+
+	mPlayerShip.push_back(player.get());
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(player));
+	return mPlayerShip.back();
+}
+
+void World::removeShip(int identifier)
+{
+	Ship* ship = getShip(identifier);
+	if (ship)
+	{
+		ship->destroy();
+		mPlayerShip.erase(std::find(mPlayerShip.begin(), mPlayerShip.end(), ship));
+	}
+}
+
+void World::createPickup(sf::Vector2f position, PickupID type)
+{
+	std::unique_ptr<Pickup> pickup(new Pickup(type, mTextures));
+	pickup->setPosition(position);
+	pickup->setVelocity(0.f, 1.f);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(pickup));
+}
+
 bool World::hasAlivePlayer() const
 {
 	
-	return !mPlayerShip->isMarkedForRemoval() && !mPlayerShip2->isMarkedForRemoval();
+	return mPlayerShip.size() > 0;
 }
 
-bool World::hasAlivePlayer1() const
-{
-	
-	return !mPlayerShip->isMarkedForRemoval();
-}
-
-bool World::hasAlivePlayer2() const
-{
-	return !mPlayerShip2->isMarkedForRemoval();
-}
 
 
 bool World::hasPlayerReachedEnd() const
 {
-	return !mWorldBounds.contains(mPlayerShip->getPosition());
+	if (Ship* ship = getShip(1))
+	{
+		return !mWorldBounds.contains(ship->getPosition());
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void World::updateSounds()
 {
+	sf::Vector2f listenerPosition;
+
+	// 0 players (multiplayer mode, until server is connected) -> view center
+	if (mPlayerShip.empty())
+	{
+		listenerPosition = mCamera.getCenter();
+	}
+
+	// 1 or more players -> mean position between all aircrafts
+	else
+	{
+		for (Ship* ship : mPlayerShip)
+			listenerPosition += ship->getWorldPosition();
+
+		listenerPosition /= static_cast<float>(mPlayerShip.size());
+	}
 	//Set the listener to the player position
-	mSounds.setListenPosition(mPlayerShip->getWorldPosition());
+	mSounds.setListenPosition(listenerPosition);
 	//Remove unused sounds
 	mSounds.removeStoppedSounds();
 
+}
+
+bool World::pollGameAction(Action& out)
+{
+	return mNetworkNode->pollGameAction(out);
 }
 
 void World::loadTextures()
@@ -142,6 +214,9 @@ void World::loadTextures()
 	mTextures.load(TextureID::Battleship, "Media/Textures/Battleship/ShipBattleshipHullTest.png");
 	mTextures.load(TextureID::BattleshipGun, "Media/Textures/Battleship/WeaponBattleshipStandardGun.png");
 	mTextures.load(TextureID::Island, "Media/Textures/Island/Island.png");
+
+	mTextures.load(TextureID::FrigateForward, "Media/Textures/RomanShips/forwardFrigate.png");
+	mTextures.load(TextureID::ShipForward, "Media/Textures/RomanShips/ShipSpriteSheet.png");
 }
 
 bool matchesCategories(SceneNode::Pair& colliders, CategoryID type1, CategoryID type2)
@@ -298,6 +373,13 @@ void World::buildScene()
 	std::unique_ptr<SoundNode> soundNode(new SoundNode(mSounds));
 	mSceneGraph.attachChild(std::move(soundNode));
 
+	// Add network node, if necessary
+	if (mNetworkedWorld)
+	{
+		std::unique_ptr<NetworkNode> networkNode(new NetworkNode());
+		mNetworkNode = networkNode.get();
+		mSceneGraph.attachChild(std::move(networkNode));
+	}
 
 	//Spawn Points
 	sf::Vector2f spawnPoint1(50.f, 50.f);
@@ -312,29 +394,33 @@ void World::buildScene()
 	Forward Gun gets drawn on top of the ship.
 
 	*/
-	std::unique_ptr<Ship> player(new Ship(ShipID::Battleship, mTextures, mFonts));
+	/*std::unique_ptr<Ship> player(new Ship(ShipID::Battleship, mTextures, mFonts));
 	mPlayerShip = player.get();
 	mPlayerShip->setPosition(mSpawnPositions[0]);
 	mPlayerShip->setRotation(180.f);
-	mSceneLayers[static_cast<int>(LayerID::LowerAir)]->attachChild(std::move(player));
+	mSceneLayers[static_cast<int>(LayerID::LowerAir)]->attachChild(std::move(player));*/
 
 #pragma region Josh Code
-	std::unique_ptr<Gun> player1ForwardGun(new Gun(mPlayerShip->getType(), mTextures));
-	mPlayerGuns[0] = player1ForwardGun.get();
-	sf::Vector2f offset(0.f, -35.f);
-	mPlayerGuns[0]->setPosition(offset);
-	mPlayerShip->attachChild(std::move(player1ForwardGun));
+	for (Ship* ship : mPlayerShip)
+	{
+		std::unique_ptr<Gun> player1ForwardGun(new Gun(ship->getType(), mTextures));
+		mPlayerGuns[0] = player1ForwardGun.get();
+		sf::Vector2f offset(0.f, -35.f);
+		mPlayerGuns[0]->setPosition(offset);
+		ship->attachChild(std::move(player1ForwardGun));
 
-	mPlayerShip->addGun(mPlayerGuns[0]);
+		ship->addGun(mPlayerGuns[0]);
+	}
+	
 #pragma endregion
 
 
 	// Add player2's Ship
-	std::unique_ptr<Ship> player2(new Ship(ShipID::Battleship2, mTextures, mFonts));
+	/*std::unique_ptr<Ship> player2(new Ship(ShipID::Battleship2, mTextures, mFonts));
 	mPlayerShip2 = player2.get();
 	mPlayerShip2->setPosition(mSpawnPositions[1]);
 	mPlayerShip2->setRotation(180.f);
-	mSceneLayers[static_cast<int>(LayerID::LowerAir)]->attachChild(std::move(player2));
+	mSceneLayers[static_cast<int>(LayerID::LowerAir)]->attachChild(std::move(player2));*/
 	
 	
 	//adding island(s) 
@@ -364,101 +450,39 @@ void World::adaptPlayerPosition()
 	sf::FloatRect viewBounds = getViewBounds();
 	const float borderDistance = 40.f;
 
-	sf::Vector2f position = mPlayerShip->getPosition();
-	position.x = std::max(position.x, viewBounds.left + borderDistance);
-	position.x = std::min(position.x, viewBounds.left + viewBounds.width - borderDistance);
-	position.y = std::max(position.y, viewBounds.top + borderDistance);
-	position.y = std::min(position.y, viewBounds.top + viewBounds.height - borderDistance);
-	mPlayerShip->setPosition(position);
+	for (Ship* ship : mPlayerShip)
+	{
+		sf::Vector2f position = ship->getPosition();
+		position.x = std::max(position.x, viewBounds.left + borderDistance);
+		position.x = std::min(position.x, viewBounds.left + viewBounds.width - borderDistance);
+		position.y = std::max(position.y, viewBounds.top + borderDistance);
+		position.y = std::min(position.y, viewBounds.top + viewBounds.height - borderDistance);
+		ship->setPosition(position);
+	}
+	
 
-	sf::Vector2f position2 = mPlayerShip2->getPosition();
-	position2.x = std::max(position2.x, viewBounds.left + borderDistance);
-	position2.x = std::min(position2.x, viewBounds.left + viewBounds.width - borderDistance);
-	position2.y = std::max(position2.y, viewBounds.top + borderDistance);
-	position2.y = std::min(position2.y, viewBounds.top + viewBounds.height - borderDistance);
-	mPlayerShip2->setPosition(position2);
+	
 }
 
 void World::adaptPlayerVelocity()
 {
-	sf::Vector2f velocity = mPlayerShip->getVelocity();
-
-	// If moving diagonally, reduce velocity (to have always same velocity)
-	if (velocity.x != 0.f && velocity.y != 0.f)
-		mPlayerShip->setVelocity(velocity / std::sqrt(2.f));
-
-
-	sf::Vector2f velocity2 = mPlayerShip2->getVelocity();
-
-	// If moving diagonally, reduce velocity (to have always same velocity)
-	if (velocity2.x != 0.f && velocity2.y != 0.f)
-		mPlayerShip2->setVelocity(velocity2 / std::sqrt(2.f));
-
-	// Add scrolling velocity
-	//mPlayerShip->accelerate(mPlayerShip->getVelocity());
-}
-
-void World::addEnemies()
-{
-	// Add enemies to the spawn point container
-	addEnemy(ShipID::Raptor, 0.f, 500.f);
-	addEnemy(ShipID::Raptor, 0.f, 1000.f);
-	addEnemy(ShipID::Raptor, +100.f, 1150.f);
-	addEnemy(ShipID::Raptor, -100.f, 1150.f);
-	addEnemy(ShipID::Avenger, 70.f, 1500.f);
-	addEnemy(ShipID::Avenger, -70.f, 1500.f);
-
-	addEnemy(ShipID::Avenger, -70.f, 1710.f);
-	addEnemy(ShipID::Avenger, 70.f, 1700.f);
-	addEnemy(ShipID::Avenger, 30.f, 1850.f);
-	addEnemy(ShipID::Raptor, 300.f, 2200.f);
-	addEnemy(ShipID::Raptor, -300.f, 2200.f);
-	addEnemy(ShipID::Raptor, 0.f, 2200.f);
-	addEnemy(ShipID::Raptor, 0.f, 2500.f);
-	addEnemy(ShipID::Avenger, -300.f, 2700.f);
-	addEnemy(ShipID::Avenger, -300.f, 2700.f);
-	addEnemy(ShipID::Raptor, 0.f, 3000.f);
-	addEnemy(ShipID::Raptor, 250.f, 3250.f);
-	addEnemy(ShipID::Raptor, -250.f, 3250.f);
-	addEnemy(ShipID::Avenger, 0.f, 3500.f);
-	addEnemy(ShipID::Avenger, 0.f, 3700.f);
-	addEnemy(ShipID::Raptor, 0.f, 3800.f);
-	addEnemy(ShipID::Avenger, 0.f, 4000.f);
-	addEnemy(ShipID::Avenger, -200.f, 4200.f);
-	addEnemy(ShipID::Raptor, 200.f, 4200.f);
-	addEnemy(ShipID::Raptor, 0.f, 4400.f);
-
-	// Sort all enemies according to their y value, such that lower enemies are checked first for spawning
-	std::sort(mEnemySpawnPoints.begin(), mEnemySpawnPoints.end(), [](SpawnPoint lhs, SpawnPoint rhs)
+	for (Ship* ship : mPlayerShip)
 	{
-		return lhs.y < rhs.y;
-	});
-}
+		sf::Vector2f velocity = ship->getVelocity();
 
-void World::addEnemy(ShipID type, float relX, float relY)
-{
-	SpawnPoint spawn(type, mSpawnPosition.x + relX, mSpawnPosition.y - relY);
-	mEnemySpawnPoints.push_back(spawn);
-}
+		// If moving diagonally, reduce velocity (to have always same velocity)
+		if (velocity.x != 0.f && velocity.y != 0.f)
+			ship->setVelocity(velocity / std::sqrt(2.f));
 
-void World::spawnEnemies()
-{
-	// Spawn all enemies entering the view area (including distance) this frame
-	while (!mEnemySpawnPoints.empty()
-		&& mEnemySpawnPoints.back().y > getBattlefieldBounds().top)
-	{
-		SpawnPoint spawn = mEnemySpawnPoints.back();
 
-		std::unique_ptr<Ship> enemy(new Ship(spawn.type, mTextures, mFonts));
-		enemy->setPosition(spawn.x, spawn.y);
-		enemy->setRotation(180.f);
-		
-		mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(enemy));
 
-		// Enemy is spawned, remove from the list to spawn
-		mEnemySpawnPoints.pop_back();
+		// Add scrolling velocity
+		//mPlayerShip->accelerate(mPlayerShip->getVelocity());
 	}
+	
 }
+
+
 
 void World::destroyEntitiesOutsideView()
 {

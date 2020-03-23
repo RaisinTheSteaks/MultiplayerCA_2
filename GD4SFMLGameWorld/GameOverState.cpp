@@ -12,7 +12,7 @@ D00183790
 #include <SFML/Graphics/View.hpp>
 
 
-GameOverState::GameOverState(StateStack& stack, Context context)
+GameOverState::GameOverState(StateStack& stack, Context context, const std::string& text)
 	: State(stack, context)
 	, mGameOverText()
 	, mElapsedTime(sf::Time::Zero)
@@ -22,12 +22,7 @@ GameOverState::GameOverState(StateStack& stack, Context context)
 
 	//game over conditions
 	mGameOverText.setFont(font);
-	if (context.player->getMissionStatus() == MissionStatusID::MissionFailure)
-		mGameOverText.setString("Player 2 Wins");
-	else if (context.player2->getMissionStatus() == MissionStatusID::MissionFailure)
-		mGameOverText.setString("Player 1 Wins");
-	else
-		mGameOverText.setString("Mission successful!");
+	mGameOverText.setString(text);
 
 	mGameOverText.setCharacterSize(70);
 	centreOrigin(mGameOverText);

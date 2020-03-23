@@ -28,7 +28,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -81,7 +81,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>C:\SFML\SFML-2.5.1\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-system-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-graphics-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-system-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-network-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -150,17 +150,23 @@
     <ClInclude Include="EmitterNode.hpp" />
     <ClInclude Include="Entity.hpp" />
     <ClInclude Include="FontID.hpp" />
+    <ClInclude Include="GameActionID.hpp" />
     <ClInclude Include="GameOverState.hpp" />
+    <ClInclude Include="GameServer.hpp" />
     <ClInclude Include="GameState.hpp" />
     <ClInclude Include="Gun.hpp" />
     <ClInclude Include="Island.hpp" />
     <ClInclude Include="IslandID.hpp" />
+    <ClInclude Include="KeyBinding.hpp" />
     <ClInclude Include="Label.hpp" />
     <ClInclude Include="LayerID.hpp" />
     <ClInclude Include="MenuState.hpp" />
     <ClInclude Include="MissionStatusID.hpp" />
+    <ClInclude Include="MultiplayerGameState.hpp" />
     <ClInclude Include="MusicID.hpp" />
     <ClInclude Include="MusicPlayer.hpp" />
+    <ClInclude Include="NetworkNode.hpp" />
+    <ClInclude Include="NetworkProtocol.hpp" />
     <ClInclude Include="NewEffect.hpp" />
     <ClInclude Include="OptionID.hpp" />
     <ClInclude Include="Particle.hpp" />
@@ -208,13 +214,17 @@
     <ClCompile Include="EmitterNode.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="GameOverState.cpp" />
+    <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="Gun.cpp" />
     <ClCompile Include="Island.cpp" />
+    <ClCompile Include="KeyBinding.cpp" />
     <ClCompile Include="Label.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MenuState.cpp" />
+    <ClCompile Include="MultiplayerGameState.cpp" />
     <ClCompile Include="MusicPlayer.cpp" />
+    <ClCompile Include="NetworkNode.cpp" />
     <ClCompile Include="NewEffect.cpp" />
     <ClCompile Include="ParticleNode.cpp" />
     <ClCompile Include="PauseState.cpp" />

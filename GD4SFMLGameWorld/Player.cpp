@@ -7,6 +7,10 @@ D00183790
 #include "Ship.hpp"
 #include "ActionID.hpp"
 #include "DataTables.hpp"
+#include "NetworkProtocol.hpp"
+
+#include <SFML/Network/Packet.hpp>
+
 #include <map>
 #include <string>
 #include <algorithm>
@@ -19,141 +23,164 @@ namespace
 
 struct ShipMover
 {
-	ShipMover(float rotation, float acceleration) :
+	ShipMover(float rotation, float acceleration, int identifier) :
 		rotation(rotation),
-		acceleration(acceleration)
+		acceleration(acceleration),
+		shipID(identifier)
 	{
 	}
 
-	void operator() (Ship& Ship, sf::Time) const
+	void operator() (Ship& ship, sf::Time) const
 	{
-		float yVel = 0.f;
-		//Citation
-		/* 
-		Joshua  Corcoran
-		D00190830
-		____________
-		Code adapted from sfml forum on moving in direction of rotation
-		https://en.sfml-dev.org/forums/index.php?topic=544.0
-		*/
+		if (ship.getIdentifier() == shipID)
+		{
+			float yVel = 0.f;
+			//Citation
+			/*
+			Joshua  Corcoran
+			D00190830
+			____________
+			Code adapted from sfml forum on moving in direction of rotation
+			https://en.sfml-dev.org/forums/index.php?topic=544.0
+			*/
 
-		/*
-		Calculating the radians of the current rotation, and then cos/sin (ing) the angle to find the distance you need to move in each angle
-		*/
-		float curRot = Ship.getRotation();
-		float pi = 3.14159265;
-		sf::Vector2f velocity;
+			/*
+			Calculating the radians of the current rotation, and then cos/sin (ing) the angle to find the distance you need to move in each angle
+			*/
+			float curRot = ship.getRotation();
+			float pi = 3.14159265;
+			sf::Vector2f velocity;
+
+			if (acceleration < 0)
+			{
+				velocity.y = cos(curRot * pi / 180) * 1;
+				velocity.x = sin(curRot * pi / 180) * -1;
+			}
+			else if (acceleration > 0)
+			{
+				velocity.y = cos(curRot * pi / 180) * -1;
+				velocity.x = sin(curRot * pi / 180) * 1;
+			}
+
+			//Trying to get a slow deceleration
+			/*else if (acceleration== 0)
+			{
+				velocity = Ship.getDirectionVec() - (Ship.getDirectionVec()*0.1f);
+			}
+			*/
+			if (rotation > 0)
+			{
+				ship.setRotation(ship.getRotation() + ship.getTurnSpeed());
+				ship.getBoundingRect();
+
+			}
+			else if (rotation < 0)
+			{
+				ship.setRotation(ship.getRotation() - ship.getTurnSpeed());
+				ship.getBoundingRect();
+			}
+			//std::cout << "Curr X [" << velocity.x << "] Curr Y [" << velocity.y << "]\n";
+
+			ship.accelerate(velocity * ship.getMaxSpeed());
+			ship.setDirectionVec(velocity);
+		}
 		
-		if (acceleration < 0)
-		{
-			velocity.y = cos(curRot*pi / 180) * 1;
-			velocity.x = sin(curRot*pi / 180) * -1;
-		}
-		else if (acceleration > 0)
-		{
-			velocity.y = cos(curRot*pi / 180)*-1;
-			velocity.x = sin(curRot*pi / 180) * 1;
-		}
-
-		//Trying to get a slow deceleration
-		/*else if (acceleration== 0)
-		{
-			velocity = Ship.getDirectionVec() - (Ship.getDirectionVec()*0.1f);
-		}
-*/
-		if (rotation > 0)
-		{
-			Ship.setRotation(Ship.getRotation() + Ship.getTurnSpeed());
-			Ship.getBoundingRect();
-
-		}
-		else if (rotation < 0)
-		{
-			Ship.setRotation(Ship.getRotation() - Ship.getTurnSpeed());
-			Ship.getBoundingRect();
-		}
-		//std::cout << "Curr X [" << velocity.x << "] Curr Y [" << velocity.y << "]\n";
-
-		Ship.accelerate(velocity*Ship.getMaxSpeed());
-		Ship.setDirectionVec(velocity);
 	}
 	float rotation, acceleration;
-
+	int shipID;
 };
 
-Player::Player(PlayerID type) : mCurrentMissionStatus(MissionStatusID::MissionRunning), mType(type)
+struct ShipFireTrigger
 {
-	//using key bindings from vector playerdata rather than player class, allows for multiple players to have different key bindings
-	mKeyBinding = Table[static_cast<int>(mType)].mKeyBinding;
+	ShipFireTrigger(int identifier)
+		: shipID(identifier)
+	{
+	}
 
-	///Moved to the DataTables.cpp
-	//// Set initial key bindings
-	//mKeyBinding[sf::Keyboard::A] = ActionID::MoveLeft;
-	//mKeyBinding[sf::Keyboard::D] = ActionID::MoveRight;
-	//mKeyBinding[sf::Keyboard::W] = ActionID::MoveUp;
-	//mKeyBinding[sf::Keyboard::S] = ActionID::MoveDown;
-	//mKeyBinding[sf::Keyboard::Space] = ActionID::Fire;
-	//mKeyBinding[sf::Keyboard::M] = ActionID::LaunchMissile;
+	void operator() (Ship& ship, sf::Time) const
+	{
+		if (ship.getIdentifier() == shipID)
+			ship.fire();
+	}
 
+	int shipID;
+};
+
+Player::Player(sf::TcpSocket* socket, sf::Int32 identifier, const KeyBinding* binding) 
+	: mKeyBinding(binding)
+	, mCurrentMissionStatus(MissionStatusID::MissionRunning)
+	, mIdentifier(identifier)
+	, mSocket(socket)
+{
 	// Set initial action bindings
 	initializeActions();
 
 	// Assign all categories to player's Ship
 	for (auto& pair : mActionBinding)
-		pair.second.category = static_cast<int>(Table[static_cast<int>(mType)].categoryID);
+		pair.second.category = static_cast<int>(CategoryID::PlayerShip);
 }
 
 void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
 {
 	if (event.type == sf::Event::KeyPressed)
 	{
-		// Check if pressed key appears in key binding, trigger command if so
-		auto found = mKeyBinding.find(event.key.code);
 
-		if (found != mKeyBinding.end() && !isRealtimeAction(found->second))
+		// Check if pressed key appears in key binding, trigger command if so
+		ActionID action;
+		if (mKeyBinding && mKeyBinding->checkAction(event.key.code, action) && !isRealtimeAction(action))
 		{
-			commands.push(mActionBinding[found->second]);
+			// Network connected -> send event over network
+			if (mSocket)
+			{
+				sf::Packet packet;
+				packet << static_cast<sf::Int32>(Client::PacketType::PlayerEvent);
+				packet << mIdentifier;
+				packet << static_cast<sf::Int32>(action);
+				mSocket->send(packet);
+			}
+			else
+			{
+				commands.push(mActionBinding[action]);
+			}
 		}
 	}
 }
 
 void Player::handleRealtimeInput(CommandQueue& commands)
 {
-	// Traverse all assigned keys and check if they are pressed
-	for (auto pair : mKeyBinding)
+	// Check if this is a networked game and local player or just a single player game
+	if ((mSocket && isLocal()) || !mSocket)
 	{
-		// If key is pressed, lookup action and trigger corresponding command
-		if (sf::Keyboard::isKeyPressed(pair.first) && isRealtimeAction(pair.second))
+		// Lookup all actions and push corresponding commands to queue
+		std::vector<ActionID> activeActions = mKeyBinding->getRealtimeActions();
+		for (ActionID action : activeActions)
 		{
-			commands.push(mActionBinding[pair.second]);
+			commands.push(mActionBinding[action]);
 		}
 	}
 }
 
-void Player::assignKey(ActionID action, sf::Keyboard::Key key)
+void Player::handleRealtimeNetworkInput(CommandQueue& commands)
 {
-	// Remove all keys that already map to action
-	for (auto itr = mKeyBinding.begin(); itr != mKeyBinding.end(); )
+	if (mSocket && !isLocal())
 	{
-		if (itr->second == action)
-			mKeyBinding.erase(itr++);
-		else
-			++itr;
+		// Traverse all realtime input proxies. Because this is a networked game, the input isn't handled directly
+		for (auto pair : mActionProxies)
+		{
+			if (pair.second && isRealtimeAction(pair.first))
+				commands.push(mActionBinding[pair.first]);
+		}
 	}
-
-	// Insert new binding
-	mKeyBinding[key] = action;
 }
 
-sf::Keyboard::Key Player::getAssignedKey(ActionID action) const
+void Player::handleNetworkEvent(ActionID action, CommandQueue& commands)
 {
-	for (auto pair : mKeyBinding)
-	{
-		if (pair.second == action)
-			return pair.first;
-	}
+	commands.push(mActionBinding[action]);
+}
 
-	return sf::Keyboard::Unknown;
+void Player::handleNetworkRealtimeChange(ActionID action, bool actionEnabled)
+{
+	mActionProxies[action] = actionEnabled;
 }
 
 void Player::setMissionStatus(MissionStatusID status)
@@ -166,30 +193,34 @@ MissionStatusID Player::getMissionStatus() const
 	return mCurrentMissionStatus;
 }
 
+void Player::disableAllRealtimeActions()
+{
+	for (auto& action : mActionProxies)
+	{
+		sf::Packet packet;
+		packet << static_cast<sf::Int32>(Client::PacketType::PlayerRealtimeChange);
+		packet << mIdentifier;
+		packet << static_cast<sf::Int32>(action.first);
+		packet << false;
+		mSocket->send(packet);
+	}
+}
+
+bool Player::isLocal() const
+{
+	// No key binding means this player is remote
+	return mKeyBinding != nullptr;
+}
+
 void Player::initializeActions()
 {
 	//Changed to provide direction of steering and acceleration vs deceleration
-	mActionBinding[ActionID::MoveLeft].action = derivedAction<Ship>(ShipMover(-1, 0));
-	mActionBinding[ActionID::MoveRight].action = derivedAction<Ship>(ShipMover(1, 0));
-	mActionBinding[ActionID::MoveUp].action = derivedAction<Ship>(ShipMover(0, 1));
-	mActionBinding[ActionID::MoveDown].action = derivedAction<Ship>(ShipMover(0, -1));
+	mActionBinding[ActionID::MoveLeft].action = derivedAction<Ship>(ShipMover(-1, 0, mIdentifier));
+	mActionBinding[ActionID::MoveRight].action = derivedAction<Ship>(ShipMover(1, 0, mIdentifier));
+	mActionBinding[ActionID::MoveUp].action = derivedAction<Ship>(ShipMover(0, 1, mIdentifier));
+	mActionBinding[ActionID::MoveDown].action = derivedAction<Ship>(ShipMover(0, -1, mIdentifier));
 
-	mActionBinding[ActionID::Fire].action = derivedAction<Ship>([](Ship& a, sf::Time) { a.fire(); });
-	mActionBinding[ActionID::LaunchMissile].action = derivedAction<Ship>([](Ship& a, sf::Time) { a.launchMissile(); });
+	mActionBinding[ActionID::Fire].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier));
+	//mActionBinding[ActionID::LaunchMissile].action = derivedAction<Ship>([](Ship& a, sf::Time) { a.launchMissile(); });
 }
 
-bool Player::isRealtimeAction(ActionID action)
-{
-	switch (action)
-	{
-	case ActionID::MoveLeft:
-	case ActionID::MoveRight:
-	case ActionID::MoveDown:
-	case ActionID::MoveUp:
-	case ActionID::Fire:
-		return true;
-
-	default:
-		return false;
-	}
-}

@@ -52,16 +52,53 @@ struct ShipMover
 			float pi = 3.14159265;
 			sf::Vector2f velocity;
 
-			if (acceleration < 0)
+			/*
+		1) Is the player accelerating/decelerating/not changing acceleration
+		2) Is the player at/below their ships min/max speed?
+		3) Accelerate accordingly
+		4) Set velocity
+		5) Apply velocity in direction
+		*/
+			float cosElement = cos(curRot*pi / 180);
+			float sinElement = sin(curRot*pi / 180);
+			float curSpeed = ship.getSpeed();
+
+			if (acceleration > 0)
 			{
-				velocity.y = cos(curRot * pi / 180) * 1;
-				velocity.x = sin(curRot * pi / 180) * -1;
+				if (curSpeed < ship.getMaxSpeed())
+				{
+					ship.setSpeed(curSpeed + acceleration);
+				}
 			}
-			else if (acceleration > 0)
+			else if (acceleration < 0)
 			{
-				velocity.y = cos(curRot * pi / 180) * -1;
-				velocity.x = sin(curRot * pi / 180) * 1;
+				if (curSpeed > (ship.getMaxSpeed() * -0.5f))
+				{
+					ship.setSpeed(curSpeed + acceleration);
+				}
 			}
+
+			int xPositive = 0, yPositive = 0;
+			//Moving Backwards
+			if (curSpeed < 0)
+			{
+				yPositive = 1;
+				xPositive = -1;
+			}
+			//Moving Forward
+			else if (curSpeed > 0)
+			{
+				yPositive = -1;
+				xPositive = 1;
+			}
+			//maintaining speed
+			else
+			{
+				yPositive = -1;
+				xPositive = 1;
+			}
+			velocity.y = cosElement * curSpeed * yPositive;
+			velocity.x = sinElement * curSpeed * xPositive;
 
 			//Trying to get a slow deceleration
 			/*else if (acceleration== 0)
@@ -71,18 +108,18 @@ struct ShipMover
 			*/
 			if (rotation > 0)
 			{
-				ship.setRotation(ship.getRotation() + ship.getTurnSpeed());
+				ship.setRotation(curRot + ship.getTurnSpeed());
 				ship.getBoundingRect();
 
 			}
 			else if (rotation < 0)
 			{
-				ship.setRotation(ship.getRotation() - ship.getTurnSpeed());
+				ship.setRotation(curRot - ship.getTurnSpeed());
 				ship.getBoundingRect();
 			}
 			//std::cout << "Curr X [" << velocity.x << "] Curr Y [" << velocity.y << "]\n";
 
-			ship.accelerate(velocity * ship.getMaxSpeed());
+			ship.accelerate(velocity * ship.getMaxSpeed() * 10.f);
 			ship.setDirectionVec(velocity);
 		}
 		

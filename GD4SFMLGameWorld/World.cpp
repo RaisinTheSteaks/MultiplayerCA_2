@@ -308,9 +308,10 @@ void World::handleCollisions()
 			
 			//island.destroy();
 			//plays sound for when player collides with island
+			
 			ship.playerLocalSound(mCommandQueue, SoundEffectID::Scream);
 			std::cout << "Hit Island!" << std::endl;
-			ship.damage(100);
+			ship.damage(20);
 		}
 	
 		//player to player collision

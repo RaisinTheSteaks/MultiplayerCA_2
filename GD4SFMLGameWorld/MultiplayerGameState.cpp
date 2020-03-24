@@ -6,6 +6,7 @@
 #include <SFML/Network/IpAddress.hpp>
 
 #include <fstream>
+#include <iostream>
 
 
 sf::IpAddress getAddressFromFile()
@@ -26,7 +27,6 @@ sf::IpAddress getAddressFromFile()
 
 MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, bool isHost) 
 	: State(stack, context)
-	//TODO - change World constructor
 	, mWorld(*context.window, *context.fonts, *context.sounds, true)
 	, mWindow(*context.window)
 	, mTextureHolder(*context.textures)
@@ -123,7 +123,6 @@ bool MultiplayerGameState::update(sf::Time dt)
 				foundLocalShip = true;
 			}
 
-			// TODO - add getShip method to World class
 			if (!mWorld.getShip(itr->first))
 			{
 				itr = mPlayers.erase(itr);
@@ -152,7 +151,6 @@ bool MultiplayerGameState::update(sf::Time dt)
 		}
 
 		// Always handle the network input
-		// TODO - add handleRealtimeNetworkInput method to World
 		CommandQueue& commands = mWorld.getCommandQueue();
 		for (auto& pair : mPlayers)
 			pair.second->handleRealtimeNetworkInput(commands);
@@ -205,6 +203,7 @@ bool MultiplayerGameState::update(sf::Time dt)
 		// Regular position updates
 		if (mTickClock.getElapsedTime() > sf::seconds(1.f / 20.f))
 		{
+
 			sf::Packet positionUpdatePacket;
 			positionUpdatePacket << static_cast<sf::Int32>(Client::PacketType::PositionUpdate);
 			positionUpdatePacket << static_cast<sf::Int32>(mLocalPlayerIdentifiers.size());
@@ -213,7 +212,8 @@ bool MultiplayerGameState::update(sf::Time dt)
 			for (sf::Int32 identifier : mLocalPlayerIdentifiers)
 			{
 				if (Ship* ship = mWorld.getShip(identifier))
-					positionUpdatePacket << identifier << ship->getPosition().x << ship->getPosition().y << ship->getRotation() << static_cast<sf::Int32>(ship->getHitpoints());
+					positionUpdatePacket << identifier << ship->getPosition().x << ship->getPosition().y 
+					<< ship->getRotation() << static_cast<sf::Int32>(ship->getHitpoints());
 			}
 
 			mSocket.send(positionUpdatePacket);
@@ -391,11 +391,11 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	case static_cast<int>(Server::PacketType::InitialState):
 	{
 		sf::Int32 shipCount;
-		float worldHeight;
-		packet >> worldHeight;
+		//float worldHeight;
+		//packet >> worldHeight;
 
 		//TODO - add setWorldHeight into World class
-		mWorld.setWorldHeight(worldHeight);
+		//mWorld.setWorldHeight(worldHeight);
 		
 
 		packet >> shipCount;
@@ -438,7 +438,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		sf::Int32 action;
 		packet >> shipIdentifier >> action;
 
-		//TODO - Add handleNetworkEvent to Player class
+		std::cout << action << std::endl;
 		auto itr = mPlayers.find(shipIdentifier);
 		if (itr != mPlayers.end())
 			itr->second->handleNetworkEvent(static_cast<ActionID>(action), mWorld.getCommandQueue());
@@ -476,11 +476,11 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	//
 	case static_cast<int>(Server::PacketType::UpdateClientState):
 	{
-		float currentWorldPosition;
+		//float currentWorldPosition;
 		sf::Int32 shipCount;
-		packet >> currentWorldPosition >> shipCount;
+		packet >> shipCount;
 
-		float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
+		//float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
 
 		// Set the world's scroll compensation according to whether the view is behind or too advanced
 		//mWorld.setWorldScrollCompensation(currentViewPosition / currentWorldPosition);
@@ -489,15 +489,20 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		{
 			sf::Vector2f shipPosition;
 			sf::Int32 shipIdentifier;
-			packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
-
-			//TODO - add getShip to World class
+			float shipRotation;
+			sf::Int32 hitPoints;
+			packet >> shipIdentifier >> shipPosition.x >> shipPosition.y >> shipRotation >> hitPoints;
 			Ship* ship = mWorld.getShip(shipIdentifier);
 			bool isLocalPlane = std::find(mLocalPlayerIdentifiers.begin(), mLocalPlayerIdentifiers.end(), shipIdentifier) != mLocalPlayerIdentifiers.end();
 			if (ship && !isLocalPlane)
 			{
 				sf::Vector2f interpolatedPosition = ship->getPosition() + (shipPosition - ship->getPosition()) * 0.1f;
 				ship->setPosition(interpolatedPosition);
+				ship->setRotation(shipRotation);
+				if (hitPoints > 0)
+					ship->setHitpoints(hitPoints);
+				else
+					ship->destroy();
 			}
 		}
 	} break;

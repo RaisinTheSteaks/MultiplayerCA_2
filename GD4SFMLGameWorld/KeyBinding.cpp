@@ -98,9 +98,9 @@ bool isRealtimeAction(ActionID action)
 	case ActionID::MoveRight:
 	case ActionID::MoveDown:
 	case ActionID::MoveUp:
-	case ActionID::Fire:
 		return true;
 
+	case ActionID::Fire:
 	default:
 		return false;
 	}

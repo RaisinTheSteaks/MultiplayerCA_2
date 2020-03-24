@@ -479,11 +479,12 @@ void GameServer::updateClientState()
 {
 	sf::Packet updateClientStatePacket;
 	updateClientStatePacket << static_cast<sf::Int32>(Server::PacketType::UpdateClientState);
-	updateClientStatePacket << static_cast<float>(mBattleFieldRect.top + mBattleFieldRect.height);
+	//updateClientStatePacket << static_cast<float>(mBattleFieldRect.top + mBattleFieldRect.height);
 	updateClientStatePacket << static_cast<sf::Int32>(mShipInfo.size());
 
 	for (auto ship : mShipInfo)
-		updateClientStatePacket << ship.first << ship.second.position.x << ship.second.position.y;
+		updateClientStatePacket << ship.first << ship.second.position.x << ship.second.position.y 
+		<< ship.second.rotation << ship.second.hitpoints;
 
 	sendToAll(updateClientStatePacket);
 }

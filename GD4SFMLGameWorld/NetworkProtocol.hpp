@@ -37,6 +37,7 @@ namespace Client
 		RequestCoopPartner, //Takes no parameters. It is sent when the user presses the Return key to request a local partner. Its counterpart is AcceptCoopPartner
 		PositionUpdate, //Takes an sf::Int32 variable with the number of local aircraft, and for each aircraft it packs another sf::Int32 variable for the identifer and two float values for the position
 		//Position x, position y, rotation, health
+		HealthUpdate,
 		GameEvent, //This informs the server of a specific happening in the client's game logic, such as enemy explosions
 		Quit //Takes no parameters - it just informs the server that the game state is closing so it can remove its aricraft
 	};

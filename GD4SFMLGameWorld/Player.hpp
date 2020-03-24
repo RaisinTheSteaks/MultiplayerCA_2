@@ -44,5 +44,6 @@ private:
 	MissionStatusID mCurrentMissionStatus;
 	int mIdentifier;
 	sf::TcpSocket* mSocket;
+	PlayerID mType;
 
 };

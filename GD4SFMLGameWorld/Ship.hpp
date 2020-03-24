@@ -45,6 +45,11 @@ public:
 	sf::Vector2f getDirectionVec();
 	void setDirectionVec(sf::Vector2f dir);
 
+	float getAcceleration();
+	void setAcceleration(float accel);
+
+	float getSpeed();
+	void setSpeed(float speed);
 private:
 	virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
 	virtual void updateCurrent(sf::Time dt, CommandQueue& commands);
@@ -93,6 +98,7 @@ private:
 		
 	*/
 	sf::Vector2f mDirectionVec;
+	float curAccel = 0.f;
 	std::array<Gun*,2>mGuns;
 
 	bool mPickupsEnabled;
@@ -100,4 +106,5 @@ private:
 	int mIdentifier;
 
 	Animation mForward;
+	float speed = 0.f;
 };

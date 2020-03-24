@@ -32,6 +32,7 @@ struct ShipMover
 
 	void operator() (Ship& ship, sf::Time) const
 	{
+
 		if (ship.getIdentifier() == shipID)
 		{
 			float yVel = 0.f;

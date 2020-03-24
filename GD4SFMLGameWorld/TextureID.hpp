@@ -22,5 +22,6 @@ enum class TextureID
 	Island,
 	Island2,
 	FrigateForward,
-	ShipForward
+	ShipForward,
+	Arrows
 };

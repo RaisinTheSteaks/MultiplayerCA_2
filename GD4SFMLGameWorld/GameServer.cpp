@@ -4,6 +4,8 @@
 #include "Pickup.hpp"
 #include "Aircraft.hpp"
 
+#include <iostream>
+
 #include <SFML/Network/Packet.hpp>
 
 GameServer::RemotePeer::RemotePeer()
@@ -312,6 +314,17 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 			}
 		}
 		mShipIdentifierCounter++;
+	} break;
+
+	case static_cast<int>(Client::PacketType::RequestStartGame):
+	{
+		
+
+		// Inform every other peer that we are exiting lobbystate
+		sf::Packet gameOverPacket;
+		gameOverPacket << static_cast<sf::Int32>(Server::PacketType::StartGame);
+		sendToAll(gameOverPacket);
+
 	} break;
 
 	case static_cast<int>(Client::PacketType::PositionUpdate):

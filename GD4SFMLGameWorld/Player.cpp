@@ -168,7 +168,7 @@ void Player::handleRealtimeNetworkInput(CommandQueue& commands)
 		// Traverse all realtime input proxies. Because this is a networked game, the input isn't handled directly
 		for (auto pair : mActionProxies)
 		{
-			std::cout << static_cast<int>(pair.first) << ": " << pair.second << std::endl;
+			
 			if (pair.second && isRealtimeAction(pair.first))
 				commands.push(mActionBinding[pair.first]);
 		}

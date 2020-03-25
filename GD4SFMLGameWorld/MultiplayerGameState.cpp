@@ -38,6 +38,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	, mGameStarted(false)
 	, mClientTimeout(sf::seconds(2.f))
 	, mTimeSinceLastPacket(sf::seconds(0.f))
+	, mLobbyState(true)
 {
 	mBroadcastText.setFont(context.fonts->get(FontID::Alternate));
 	mBroadcastText.setPosition(1024.f / 2, 100.f);
@@ -45,7 +46,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	mPlayerInvitationText.setFont(context.fonts->get(FontID::Alternate));
 	mPlayerInvitationText.setCharacterSize(20);
 	mPlayerInvitationText.setFillColor(sf::Color::White);
-	mPlayerInvitationText.setString("Press Enter to spawn player 2");
+	mPlayerInvitationText.setString("Press Enter to start the game!");
 	mPlayerInvitationText.setPosition(1000 - mPlayerInvitationText.getLocalBounds().width, 760 - mPlayerInvitationText.getLocalBounds().height);
 
 	// We reuse this text for "Attempt to connect" and "Failed to connect" messages
@@ -98,7 +99,7 @@ void MultiplayerGameState::draw()
 		if (!mBroadcasts.empty())
 			mWindow.draw(mBroadcastText);
 
-		if (mLocalPlayerIdentifiers.size() < 2 && mPlayerInvitationTime < sf::seconds(0.5f))
+		if (mHost && mLobbyState && mPlayerInvitationTime < sf::seconds(0.5f))
 			mWindow.draw(mPlayerInvitationText);
 	}
 	else
@@ -143,7 +144,7 @@ bool MultiplayerGameState::update(sf::Time dt)
 		}
 
 		// Only handle the realtime input if the window has focus and the game is unpaused
-		if (mActiveState && mHasFocus)
+		if (mActiveState && mHasFocus && !mLobbyState)
 		{
 			CommandQueue& commands = mWorld.getCommandQueue();
 			for (auto& pair : mPlayers)
@@ -235,22 +236,28 @@ bool MultiplayerGameState::update(sf::Time dt)
 
 bool MultiplayerGameState::handleEvent(const sf::Event& event)
 {
-	// Game input handling
 	CommandQueue& commands = mWorld.getCommandQueue();
-
 	// Forward event to all players
-	for (auto& pair : mPlayers)
-		pair.second->handleEvent(event, commands);
+	if (!mLobbyState)
+	{
+		for (auto& pair : mPlayers)
+			pair.second->handleEvent(event, commands);
+	}
+
 
 	if (event.type == sf::Event::KeyPressed)
 	{
 		// Enter pressed, add second player co-op (only if we are one player)
-		if (event.key.code == sf::Keyboard::Return && mLocalPlayerIdentifiers.size() == 1)
+		if (event.key.code == sf::Keyboard::Return && mLobbyState && mHost)
 		{
+			/*std::cout << "Pressed" << std::endl;
+			mLobbyState = false;*/
 			sf::Packet packet;
-			packet << static_cast<sf::Int32>(Client::PacketType::RequestCoopPartner);
+			packet << static_cast<sf::Int32>(Client::PacketType::RequestStartGame);
 
 			mSocket.send(packet);
+			
+
 		}
 
 		// Escape pressed, trigger the pause screen
@@ -431,6 +438,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		mLocalPlayerIdentifiers.push_back(shipIdentifier);
 	} break;
 
+
 	// Player event (like missile fired) occurs
 	case static_cast<int>(Server::PacketType::PlayerEvent):
 	{
@@ -461,6 +469,12 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	case static_cast<int>(Server::PacketType::GameOver) :
 	{
 		requestStackPush(StateID::GameOver);
+	} break;
+
+	case static_cast<int>(Server::PacketType::StartGame) :
+	{
+		
+		mLobbyState = false;
 	} break;
 	// Pickup created
 	case static_cast<int>(Server::PacketType::SpawnPickup):

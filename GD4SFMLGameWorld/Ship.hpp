@@ -34,7 +34,7 @@ public:
 
 	float getMaxSpeed() const;
 	float getTurnSpeed() const;
-	void fire();
+	void fire(int fireDirection);
 	void launchMissile();
 	bool isAllied() const;
 	void increaseFireRate();
@@ -107,4 +107,6 @@ private:
 
 	Animation mForward;
 	float speed = 0.f;
+
+	int fireDirection;
 };

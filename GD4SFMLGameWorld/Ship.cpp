@@ -308,8 +308,9 @@ void Ship::setSpeed(float speed)
 	this->speed = speed;
 }
 
-void Ship::fire()
+void Ship::fire(int fireDir)
 {
+	this->fireDirection = fireDir;
 	// Only ships with fire interval != 0 are able to fire
 	if (Table[static_cast<int>(mType)].fireInterval != sf::Time::Zero)
 		mIsFiring = true;
@@ -359,7 +360,7 @@ void Ship::checkProjectileLaunch(sf::Time dt, CommandQueue& commands)
 {
 	// Enemies try to fire all the time
 	if (!isAllied())
-		fire();
+		fire(1);
 
 	// Check for automatic gunfire, allow only in intervals
 	if (mIsFiring && mFireCountdown <= sf::Time::Zero)
@@ -426,11 +427,16 @@ void Ship::createProjectile(SceneNode& node, ProjectileID type, float xOffset, f
 		_________
 		Trying to get bullets to turn firing direction with the ship
 	*/
+
 	float pi = 3.14159265f;
 	velocity.y *= cos(projectile->getMRotation()*pi / 180) * -1;
 	velocity.x *= sin(projectile->getMRotation()*pi / 180) * 1;
 
-	projectile->setPosition(getWorldPosition() +velocity*(offset.x+offset.y+10));
+	sf::Vector2f spawnArrowPos = getWorldPosition() + velocity * (offset.x + offset.y) * 15.f;
+
+	spawnArrowPos.x += this->fireDirection;
+
+	projectile->setPosition(spawnArrowPos);
 	projectile->setRotation(projectile->getMRotation());
 	projectile->setVelocity(velocity*getMaxSpeed());
 	node.attachChild(std::move(projectile));

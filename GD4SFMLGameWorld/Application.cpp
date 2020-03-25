@@ -15,7 +15,7 @@ D00183790
 const sf::Time Application::TimePerFrame = sf::seconds(1.f / 60.f);
 
 Application::Application()
-	: mWindow(sf::VideoMode(1280, 960), "Sea++", sf::Style::Close)
+	: mWindow(sf::VideoMode(1280, 960), "Sea-8-2", sf::Style::Close)
 	, mTextures()
 	, mFonts()
 	, mKeyBinding1(1)
@@ -31,7 +31,7 @@ Application::Application()
 
 	mFonts.load(FontID::Main, "Media/Sansation.ttf");
 	mFonts.load(FontID::Alternate, "Media/Alternative.ttf");
-	mTextures.load(TextureID::TitleScreen, "Media/Textures/battleShip.jpg");
+	mTextures.load(TextureID::TitleScreen, "Media/Textures/triremeBackground.jpg");
 	mTextures.load(TextureID::Buttons, "Media/Textures/Buttons.png");
 	mStatisticText.setFont(mFonts.get(FontID::Main));
 	mStatisticText.setPosition(5.f, 5.f);

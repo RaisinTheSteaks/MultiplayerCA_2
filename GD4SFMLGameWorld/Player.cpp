@@ -32,6 +32,7 @@ struct ShipMover
 
 	void operator() (Ship& ship, sf::Time) const
 	{
+		//std::cout << "POS:" << ship.getPosition().x << "," << ship.getPosition().y << std::endl;
 
 		if (ship.getIdentifier() == shipID)
 		{
@@ -63,6 +64,7 @@ struct ShipMover
 			float sinElement = sin(curRot*pi / 180);
 			float curSpeed = ship.getSpeed();
 
+			//std::cout << "Speed:" << curSpeed << std::endl;
 			if (acceleration > 0)
 			{
 				if (curSpeed < ship.getMaxSpeed())
@@ -88,8 +90,8 @@ struct ShipMover
 			//Moving Forward
 			else if (curSpeed > 0)
 			{
-				yPositive = -1;
-				xPositive = 1;
+				yPositive = 1;
+				xPositive = -1;
 			}
 			//maintaining speed
 			else
@@ -119,32 +121,34 @@ struct ShipMover
 			}
 			//std::cout << "Curr X [" << velocity.x << "] Curr Y [" << velocity.y << "]\n";
 
-			ship.accelerate(velocity * ship.getMaxSpeed() * 10.f);
+			ship.accelerate(velocity * ship.getMaxSpeed() * 1.5f);
 			ship.setDirectionVec(velocity);
 		}
 		
 	}
 	float rotation, acceleration;
 	int shipID;
+
 };
 
 struct ShipFireTrigger
 {
-	ShipFireTrigger(int identifier)
-		: shipID(identifier)
+	ShipFireTrigger(int identifier, int direction)
+		: shipID(identifier),fireDir(direction)
 	{
 	}
 
 	void operator() (Ship& ship, sf::Time) const
 	{
 		if (ship.getIdentifier() == shipID)
-			ship.fire();
+			ship.fire(fireDir);
 	}
 
 	int shipID;
+	int fireDir;
 };
 
-Player::Player(sf::TcpSocket* socket, sf::Int32 identifier, const KeyBinding* binding) 
+Player::Player(sf::TcpSocket* socket, sf::Uint8 identifier, const KeyBinding* binding) 
 	: mKeyBinding(binding)
 	, mCurrentMissionStatus(MissionStatusID::MissionRunning)
 	, mIdentifier(identifier)
@@ -258,7 +262,8 @@ void Player::initializeActions()
 	mActionBinding[ActionID::MoveUp].action = derivedAction<Ship>(ShipMover(0, 1, mIdentifier));
 	mActionBinding[ActionID::MoveDown].action = derivedAction<Ship>(ShipMover(0, -1, mIdentifier));
 
-	mActionBinding[ActionID::Fire].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier));
+	mActionBinding[ActionID::FireLeft].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,1));
+	mActionBinding[ActionID::FireRight].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,2));
 	//mActionBinding[ActionID::LaunchMissile].action = derivedAction<Ship>([](Ship& a, sf::Time) { a.launchMissile(); });
 }
 

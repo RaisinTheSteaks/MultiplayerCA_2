@@ -124,11 +124,12 @@ void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
 {
 	if (event.type == sf::Event::KeyPressed)
 	{
-
+		
 		// Check if pressed key appears in key binding, trigger command if so
 		ActionID action;
 		if (mKeyBinding && mKeyBinding->checkAction(event.key.code, action) && !isRealtimeAction(action))
 		{
+			
 			// Network connected -> send event over network
 			if (mSocket)
 			{
@@ -167,9 +168,12 @@ void Player::handleRealtimeNetworkInput(CommandQueue& commands)
 		// Traverse all realtime input proxies. Because this is a networked game, the input isn't handled directly
 		for (auto pair : mActionProxies)
 		{
+			
 			if (pair.second && isRealtimeAction(pair.first))
 				commands.push(mActionBinding[pair.first]);
 		}
+
+		
 	}
 }
 
@@ -180,6 +184,7 @@ void Player::handleNetworkEvent(ActionID action, CommandQueue& commands)
 
 void Player::handleNetworkRealtimeChange(ActionID action, bool actionEnabled)
 {
+	
 	mActionProxies[action] = actionEnabled;
 }
 

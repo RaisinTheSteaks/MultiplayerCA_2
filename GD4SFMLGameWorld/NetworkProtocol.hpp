@@ -22,6 +22,7 @@ namespace Server
 		AcceptCoopPartner, //This is used to tell the client that it can spawn a second player. It needs sf::Int32 with id for new plane and two float values with the position of the aircraft
 		SpawnPickup, //sf::Int32 with type of pickup, 2 floats for position
 		UpdateClientState, //This takes a float with the current scrolling distance on the server, an sf::Int32 with the aircraft count. For each aircraft send identifier and two float values for position
+		StartGame,
 		GameOver //This no arguments. It is just used to tell the client that the game is over
 		//we changed this from MissionSuccess to GameOver
 	};
@@ -35,8 +36,10 @@ namespace Client
 		PlayerEvent, //This takes two sf::Int32 variables, an aircraft identifier, and the event to be triggered as defined in ActionID. It is used to request the server to trigger an event on the requested aircraft
 		PlayerRealtimeChange, //This is the same as Playerevent but additionally takes a boolean to state whether the action is active or not
 		RequestCoopPartner, //Takes no parameters. It is sent when the user presses the Return key to request a local partner. Its counterpart is AcceptCoopPartner
+		RequestStartGame,
 		PositionUpdate, //Takes an sf::Int32 variable with the number of local aircraft, and for each aircraft it packs another sf::Int32 variable for the identifer and two float values for the position
 		//Position x, position y, rotation, health
+		HealthUpdate,
 		GameEvent, //This informs the server of a specific happening in the client's game logic, such as enemy explosions
 		Quit //Takes no parameters - it just informs the server that the game state is closing so it can remove its aricraft
 	};

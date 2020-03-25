@@ -60,6 +60,7 @@ private:
 	bool mHasFocus;
 	bool mHost;
 	bool mGameStarted;
+	bool mLobbyState;
 	sf::Time mClientTimeout;
 	sf::Time mTimeSinceLastPacket;
 };

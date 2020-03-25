@@ -4,6 +4,8 @@
 #include "Pickup.hpp"
 #include "Aircraft.hpp"
 
+#include <iostream>
+
 #include <SFML/Network/Packet.hpp>
 
 GameServer::RemotePeer::RemotePeer()
@@ -314,6 +316,17 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 		mShipIdentifierCounter++;
 	} break;
 
+	case static_cast<int>(Client::PacketType::RequestStartGame):
+	{
+		
+
+		// Inform every other peer that we are exiting lobbystate
+		sf::Packet gameOverPacket;
+		gameOverPacket << static_cast<sf::Int32>(Server::PacketType::StartGame);
+		sendToAll(gameOverPacket);
+
+	} break;
+
 	case static_cast<int>(Client::PacketType::PositionUpdate):
 	{
 		sf::Int32 numShips;
@@ -479,11 +492,12 @@ void GameServer::updateClientState()
 {
 	sf::Packet updateClientStatePacket;
 	updateClientStatePacket << static_cast<sf::Int32>(Server::PacketType::UpdateClientState);
-	updateClientStatePacket << static_cast<float>(mBattleFieldRect.top + mBattleFieldRect.height);
+	//updateClientStatePacket << static_cast<float>(mBattleFieldRect.top + mBattleFieldRect.height);
 	updateClientStatePacket << static_cast<sf::Int32>(mShipInfo.size());
 
 	for (auto ship : mShipInfo)
-		updateClientStatePacket << ship.first << ship.second.position.x << ship.second.position.y;
+		updateClientStatePacket << ship.first << ship.second.position.x << ship.second.position.y 
+		<< ship.second.rotation << ship.second.hitpoints;
 
 	sendToAll(updateClientStatePacket);
 }

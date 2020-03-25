@@ -6,6 +6,7 @@
 #include <SFML/Network/IpAddress.hpp>
 
 #include <fstream>
+#include <iostream>
 
 
 sf::IpAddress getAddressFromFile()
@@ -26,7 +27,6 @@ sf::IpAddress getAddressFromFile()
 
 MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, bool isHost) 
 	: State(stack, context)
-	//TODO - change World constructor
 	, mWorld(*context.window, *context.fonts, *context.sounds, true)
 	, mWindow(*context.window)
 	, mTextureHolder(*context.textures)
@@ -38,6 +38,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	, mGameStarted(false)
 	, mClientTimeout(sf::seconds(2.f))
 	, mTimeSinceLastPacket(sf::seconds(0.f))
+	, mLobbyState(true)
 {
 	mBroadcastText.setFont(context.fonts->get(FontID::Alternate));
 	mBroadcastText.setPosition(1024.f / 2, 100.f);
@@ -45,7 +46,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	mPlayerInvitationText.setFont(context.fonts->get(FontID::Alternate));
 	mPlayerInvitationText.setCharacterSize(20);
 	mPlayerInvitationText.setFillColor(sf::Color::White);
-	mPlayerInvitationText.setString("Press Enter to spawn player 2");
+	mPlayerInvitationText.setString("Press Enter to start the game!");
 	mPlayerInvitationText.setPosition(1000 - mPlayerInvitationText.getLocalBounds().width, 760 - mPlayerInvitationText.getLocalBounds().height);
 
 	// We reuse this text for "Attempt to connect" and "Failed to connect" messages
@@ -67,7 +68,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	if (isHost)
 	{
 		mGameServer.reset(new GameServer(sf::Vector2f(mWindow.getSize())));
-		ip = "127.0.0.1";
+		ip = "192.168.1.7";
 	}
 	else
 	{
@@ -98,7 +99,7 @@ void MultiplayerGameState::draw()
 		if (!mBroadcasts.empty())
 			mWindow.draw(mBroadcastText);
 
-		if (mLocalPlayerIdentifiers.size() < 2 && mPlayerInvitationTime < sf::seconds(0.5f))
+		if (mHost && mLobbyState && mPlayerInvitationTime < sf::seconds(0.5f))
 			mWindow.draw(mPlayerInvitationText);
 	}
 	else
@@ -123,7 +124,6 @@ bool MultiplayerGameState::update(sf::Time dt)
 				foundLocalShip = true;
 			}
 
-			// TODO - add getShip method to World class
 			if (!mWorld.getShip(itr->first))
 			{
 				itr = mPlayers.erase(itr);
@@ -144,7 +144,7 @@ bool MultiplayerGameState::update(sf::Time dt)
 		}
 
 		// Only handle the realtime input if the window has focus and the game is unpaused
-		if (mActiveState && mHasFocus)
+		if (mActiveState && mHasFocus && !mLobbyState)
 		{
 			CommandQueue& commands = mWorld.getCommandQueue();
 			for (auto& pair : mPlayers)
@@ -152,7 +152,6 @@ bool MultiplayerGameState::update(sf::Time dt)
 		}
 
 		// Always handle the network input
-		// TODO - add handleRealtimeNetworkInput method to World
 		CommandQueue& commands = mWorld.getCommandQueue();
 		for (auto& pair : mPlayers)
 			pair.second->handleRealtimeNetworkInput(commands);
@@ -205,6 +204,7 @@ bool MultiplayerGameState::update(sf::Time dt)
 		// Regular position updates
 		if (mTickClock.getElapsedTime() > sf::seconds(1.f / 20.f))
 		{
+
 			sf::Packet positionUpdatePacket;
 			positionUpdatePacket << static_cast<sf::Int32>(Client::PacketType::PositionUpdate);
 			positionUpdatePacket << static_cast<sf::Int32>(mLocalPlayerIdentifiers.size());
@@ -213,7 +213,8 @@ bool MultiplayerGameState::update(sf::Time dt)
 			for (sf::Int32 identifier : mLocalPlayerIdentifiers)
 			{
 				if (Ship* ship = mWorld.getShip(identifier))
-					positionUpdatePacket << identifier << ship->getPosition().x << ship->getPosition().y << ship->getRotation() << static_cast<sf::Int32>(ship->getHitpoints());
+					positionUpdatePacket << identifier << ship->getPosition().x << ship->getPosition().y 
+					<< ship->getRotation() << static_cast<sf::Int32>(ship->getHitpoints());
 			}
 
 			mSocket.send(positionUpdatePacket);
@@ -235,22 +236,28 @@ bool MultiplayerGameState::update(sf::Time dt)
 
 bool MultiplayerGameState::handleEvent(const sf::Event& event)
 {
-	// Game input handling
 	CommandQueue& commands = mWorld.getCommandQueue();
-
 	// Forward event to all players
-	for (auto& pair : mPlayers)
-		pair.second->handleEvent(event, commands);
+	if (!mLobbyState)
+	{
+		for (auto& pair : mPlayers)
+			pair.second->handleEvent(event, commands);
+	}
+
 
 	if (event.type == sf::Event::KeyPressed)
 	{
 		// Enter pressed, add second player co-op (only if we are one player)
-		if (event.key.code == sf::Keyboard::Return && mLocalPlayerIdentifiers.size() == 1)
+		if (event.key.code == sf::Keyboard::Return && mLobbyState && mHost)
 		{
+			/*std::cout << "Pressed" << std::endl;
+			mLobbyState = false;*/
 			sf::Packet packet;
-			packet << static_cast<sf::Int32>(Client::PacketType::RequestCoopPartner);
+			packet << static_cast<sf::Int32>(Client::PacketType::RequestStartGame);
 
 			mSocket.send(packet);
+			
+
 		}
 
 		// Escape pressed, trigger the pause screen
@@ -391,11 +398,11 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	case static_cast<int>(Server::PacketType::InitialState):
 	{
 		sf::Int32 shipCount;
-		float worldHeight;
-		packet >> worldHeight;
+		//float worldHeight;
+		//packet >> worldHeight;
 
 		//TODO - add setWorldHeight into World class
-		mWorld.setWorldHeight(worldHeight);
+		//mWorld.setWorldHeight(worldHeight);
 		
 
 		packet >> shipCount;
@@ -431,6 +438,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		mLocalPlayerIdentifiers.push_back(shipIdentifier);
 	} break;
 
+
 	// Player event (like missile fired) occurs
 	case static_cast<int>(Server::PacketType::PlayerEvent):
 	{
@@ -438,7 +446,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		sf::Int32 action;
 		packet >> shipIdentifier >> action;
 
-		//TODO - Add handleNetworkEvent to Player class
+		std::cout << action << std::endl;
 		auto itr = mPlayers.find(shipIdentifier);
 		if (itr != mPlayers.end())
 			itr->second->handleNetworkEvent(static_cast<ActionID>(action), mWorld.getCommandQueue());
@@ -462,6 +470,12 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	{
 		requestStackPush(StateID::GameOver);
 	} break;
+
+	case static_cast<int>(Server::PacketType::StartGame) :
+	{
+		
+		mLobbyState = false;
+	} break;
 	// Pickup created
 	case static_cast<int>(Server::PacketType::SpawnPickup):
 	{
@@ -476,11 +490,11 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	//
 	case static_cast<int>(Server::PacketType::UpdateClientState):
 	{
-		float currentWorldPosition;
+		//float currentWorldPosition;
 		sf::Int32 shipCount;
-		packet >> currentWorldPosition >> shipCount;
+		packet >> shipCount;
 
-		float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
+		//float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
 
 		// Set the world's scroll compensation according to whether the view is behind or too advanced
 		//mWorld.setWorldScrollCompensation(currentViewPosition / currentWorldPosition);
@@ -489,15 +503,20 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		{
 			sf::Vector2f shipPosition;
 			sf::Int32 shipIdentifier;
-			packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
-
-			//TODO - add getShip to World class
+			float shipRotation;
+			sf::Int32 hitPoints;
+			packet >> shipIdentifier >> shipPosition.x >> shipPosition.y >> shipRotation >> hitPoints;
 			Ship* ship = mWorld.getShip(shipIdentifier);
 			bool isLocalPlane = std::find(mLocalPlayerIdentifiers.begin(), mLocalPlayerIdentifiers.end(), shipIdentifier) != mLocalPlayerIdentifiers.end();
 			if (ship && !isLocalPlane)
 			{
 				sf::Vector2f interpolatedPosition = ship->getPosition() + (shipPosition - ship->getPosition()) * 0.1f;
 				ship->setPosition(interpolatedPosition);
+				ship->setRotation(shipRotation);
+				if (hitPoints > 0)
+					ship->setHitpoints(hitPoints);
+				else
+					ship->destroy();
 			}
 		}
 	} break;

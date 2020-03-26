@@ -26,6 +26,14 @@ public:
 
 private:
 	// A GameServerRemotePeer refers to one instance of the game, may it be local or from another computer
+	struct SpawnPoint
+	{
+		SpawnPoint(sf::Vector2f position, float rotation, sf::Int32 shipIdentifier);
+
+		sf::Vector2f			position;
+		float					rotation;
+		sf::Int32				shipIdentifier;
+	};
 	struct RemotePeer
 	{
 		RemotePeer();
@@ -90,5 +98,6 @@ private:
 
 	bool mLobbyState;
 	sf::Time mGameTimer;
+	std::vector<SpawnPoint*> mSpawnList;
 	//sf::Time mTimeForNextSpawn;
 };

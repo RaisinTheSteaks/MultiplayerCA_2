@@ -21,16 +21,15 @@ GameServer::GameServer(sf::Vector2f battlefieldSize)
 	, mClientTimeoutTime(sf::seconds(3.f))
 	, mMaxConnectedPlayers(10)
 	, mConnectedPlayers(0)
-	, mWorldHeight(5000.f)
+	, mWorldHeight(720.f)
 	, mBattleFieldRect(0.f, mWorldHeight - battlefieldSize.y, battlefieldSize.x, battlefieldSize.y)
-	//, mBattleFieldScrollSpeed(-50.f)
 	, mShipCount(0)
 	, mPeers(1)
 	, mShipIdentifierCounter(1)
 	, mWaitingThreadEnd(false)
 	, mGameTimer(sf::seconds(900))
 	, mLobbyState(true)
-	//, mTimeForNextSpawn(sf::seconds(5.f))
+	, mSpawnList()
 {
 	mListenerSocket.setBlocking(false);
 	mPeers[0].reset(new RemotePeer());
@@ -108,6 +107,11 @@ void GameServer::setListening(bool enable)
 void GameServer::executionThread()
 {
 	setListening(true);
+	std::unique_ptr<SpawnPoint> s(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height / 2), 0.5f, -1));
+	mSpawnList.push_back(s.get());
+
+	std::unique_ptr<SpawnPoint> s1(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height), 0, -1));
+	mSpawnList.push_back(s1.get());
 
 	sf::Time stepInterval = sf::seconds(1.f / 60.f);
 	sf::Time stepTime = sf::Time::Zero;
@@ -393,8 +397,21 @@ void GameServer::handleIncomingConnections()
 	{
 		// order the new client to spawn its own plane ( player 1 )
 		//TODO - apply Spawnpoint here 
-		mShipInfo[mShipIdentifierCounter].position = sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height / 2);
-		mShipInfo[mShipIdentifierCounter].hitpoints = 100;
+		
+		while (true)
+		{
+			int rando = rand() % 2;
+			SpawnPoint * s = mSpawnList[rando];
+			if (s->shipIdentifier == -1)
+			{
+				mShipInfo[mShipIdentifierCounter].position = s->position;
+				mShipInfo[mShipIdentifierCounter].hitpoints = 100;
+				mShipInfo[mShipIdentifierCounter].rotation = s->rotation;
+				s->shipIdentifier = mShipIdentifierCounter;
+				break;
+			}
+		}
+		
 		
 
 		sf::Packet packet;
@@ -432,6 +449,12 @@ void GameServer::handleDisconnections()
 			for (sf::Int32 identifier : (*itr)->shipIdentifiers)
 			{
 				sendToAll(sf::Packet() << static_cast<sf::Int32>(Server::PacketType::PlayerDisconnect) << identifier);
+
+				for (SpawnPoint* spawn : mSpawnList)
+				{
+					if (spawn->shipIdentifier == identifier)
+						spawn->shipIdentifier = -1;
+				}
 
 				mShipInfo.erase(identifier);
 			}
@@ -512,4 +535,8 @@ void GameServer::updateClientState()
 		<< ship.second.rotation << ship.second.hitpoints;
 
 	sendToAll(updateClientStatePacket);
+}
+
+GameServer::SpawnPoint::SpawnPoint(sf::Vector2f position, float rotation, sf::Int32 shipIdentifier) : position(position), rotation(rotation), shipIdentifier(shipIdentifier)
+{
 }

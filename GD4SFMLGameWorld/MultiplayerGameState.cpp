@@ -40,6 +40,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	, mTimeSinceLastPacket(sf::seconds(0.f))
 	, mLobbyState(true)
 	, mTimer(sf::seconds(900))
+	
 {
 	mBroadcastText.setFont(context.fonts->get(FontID::Alternate));
 	mBroadcastText.setPosition(1024.f / 2, 100.f);

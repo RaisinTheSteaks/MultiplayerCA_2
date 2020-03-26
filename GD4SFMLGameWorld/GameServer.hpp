@@ -88,6 +88,7 @@ private:
 	sf::Int32 mShipIdentifierCounter;
 	bool mWaitingThreadEnd;
 
-	//sf::Time mLastSpawnTime;
+	bool mLobbyState;
+	sf::Time mGameTimer;
 	//sf::Time mTimeForNextSpawn;
 };

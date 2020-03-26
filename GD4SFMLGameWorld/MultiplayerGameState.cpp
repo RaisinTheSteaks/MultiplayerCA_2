@@ -39,6 +39,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	, mClientTimeout(sf::seconds(2.f))
 	, mTimeSinceLastPacket(sf::seconds(0.f))
 	, mLobbyState(true)
+	, mTimer(sf::seconds(900))
 {
 	mBroadcastText.setFont(context.fonts->get(FontID::Alternate));
 	mBroadcastText.setPosition(1024.f / 2, 100.f);
@@ -56,6 +57,16 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	mFailedConnectionText.setFillColor(sf::Color::White);
 	centreOrigin(mFailedConnectionText);
 	mFailedConnectionText.setPosition(mWindow.getSize().x / 2.f, mWindow.getSize().y / 2.f);
+
+	int min = static_cast<int>(mTimer.asSeconds()) / 60;
+	int sec = static_cast<int>(mTimer.asSeconds()) % 60;
+	std::string time = std::to_string(min) + ":" + std::to_string(sec);
+	mTimerText.setFont(context.fonts->get(FontID::Main));
+	mTimerText.setString(time);
+	mTimerText.setCharacterSize(20);
+	mTimerText.setFillColor(sf::Color::White);
+	centreOrigin(mTimerText);
+	mTimerText.setPosition(mWindow.getSize().x / 2.f, mWindow.getSize().y / 2.f);
 
 	// Render a "establishing connection" frame for user feedback
 	mWindow.clear(sf::Color::Black);
@@ -95,12 +106,15 @@ void MultiplayerGameState::draw()
 		// Broadcast messages in default view
 		// TODO - camera set to player, smaller than the world size
 		mWindow.setView(mWindow.getDefaultView());
+		mWindow.draw(mTimerText);
 
 		if (!mBroadcasts.empty())
 			mWindow.draw(mBroadcastText);
 
 		if (mHost && mLobbyState && mPlayerInvitationTime < sf::seconds(0.5f))
 			mWindow.draw(mPlayerInvitationText);
+
+		
 	}
 	else
 	{
@@ -114,6 +128,7 @@ bool MultiplayerGameState::update(sf::Time dt)
 	{
 		mWorld.update(dt);
 
+		
 		// Remove players whose aircrafts were destroyed
 		bool foundLocalShip = false;
 		for (auto itr = mPlayers.begin(); itr != mPlayers.end(); )
@@ -186,6 +201,8 @@ bool MultiplayerGameState::update(sf::Time dt)
 		if (mPlayerInvitationTime > sf::seconds(1.f))
 			mPlayerInvitationTime = sf::Time::Zero;
 
+		
+
 		// Events occurring in the game
 		//TODO - Add Action class to handle gameAction
 		//TODO - Add pollGameAction into World class
@@ -229,6 +246,15 @@ bool MultiplayerGameState::update(sf::Time dt)
 	{
 		requestStackClear();
 		requestStackPush(StateID::Menu);
+	}
+
+	if (!mLobbyState)
+	{
+		sf::Time timer = mTimer - now();
+		int min = static_cast<int>(timer.asSeconds()) / 60;
+		int sec = static_cast<int>(timer.asSeconds()) % 60;
+		std::string time = std::to_string(min) + ":" + std::to_string(sec);
+		mTimerText.setString(time);
 	}
 
 	return true;
@@ -475,6 +501,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	{
 		
 		mLobbyState = false;
+		mClock.restart();
 	} break;
 	// Pickup created
 	case static_cast<int>(Server::PacketType::SpawnPickup):
@@ -521,4 +548,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		}
 	} break;
 	}
+}
+
+sf::Time MultiplayerGameState::now() const
+{
+	return mClock.getElapsedTime();
 }

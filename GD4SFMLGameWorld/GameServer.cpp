@@ -28,7 +28,8 @@ GameServer::GameServer(sf::Vector2f battlefieldSize)
 	, mPeers(1)
 	, mShipIdentifierCounter(1)
 	, mWaitingThreadEnd(false)
-	//, mLastSpawnTime(sf::Time::Zero)
+	, mGameTimer(sf::seconds(900))
+	, mLobbyState(true)
 	//, mTimeForNextSpawn(sf::seconds(5.f))
 {
 	mListenerSocket.setBlocking(false);
@@ -174,6 +175,13 @@ void GameServer::tick()
 			++itr;
 	}
 
+	if (now() >= mGameTimer && !mLobbyState)
+	{
+		sf::Packet gameOverPacket;
+		gameOverPacket << static_cast<sf::Int32>(Server::PacketType::GameOver);
+		sendToAll(gameOverPacket);
+	}
+
 	// Check if its time to attempt to spawn enemies
 	/*if (now() >= mTimeForNextSpawn + mLastSpawnTime)
 	{
@@ -265,11 +273,14 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 	case static_cast<int>(Client::PacketType::PlayerEvent):
 	{
+		
 		sf::Int32 shipIdentifier;
 		sf::Int32 action;
 		packet >> shipIdentifier >> action;
-
 		notifyPlayerEvent(shipIdentifier, action);
+		
+
+		
 	} break;
 
 	case static_cast<int>(Client::PacketType::PlayerRealtimeChange):
@@ -318,12 +329,13 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 	case static_cast<int>(Client::PacketType::RequestStartGame):
 	{
-		
-
 		// Inform every other peer that we are exiting lobbystate
 		sf::Packet gameOverPacket;
 		gameOverPacket << static_cast<sf::Int32>(Server::PacketType::StartGame);
 		sendToAll(gameOverPacket);
+		mLobbyState = false;
+		mClock.restart();
+		mListeningState = false;
 
 	} break;
 

@@ -28,7 +28,7 @@ public:
 private:
 	void updateBroadcastMessage(sf::Time elapsedTime);
 	void handlePacket(sf::Int32 packetType, sf::Packet& packet);
-
+	sf::Time now() const;
 
 private:
 	typedef std::unique_ptr<Player> PlayerPtr;
@@ -63,4 +63,8 @@ private:
 	bool mLobbyState;
 	sf::Time mClientTimeout;
 	sf::Time mTimeSinceLastPacket;
+	
+	sf::Time mTimer;
+	sf::Clock mClock;
+	sf::Text mTimerText;
 };

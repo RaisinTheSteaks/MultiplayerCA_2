@@ -441,8 +441,8 @@ void Ship::createProjectile(SceneNode& node, ProjectileID type, float xOffset, f
 	*/
 
 	float pi = 3.14159265f;
-	velocity.y *= cos(projectile->getMRotation()*pi / 180) * -1;
-	velocity.x *= sin(projectile->getMRotation()*pi / 180) * 1;
+	velocity.y *= cos((projectile->getMRotation()+90)*pi / 180) * -1;
+	velocity.x *= sin((projectile->getMRotation()+90)*pi / 180) * 1;
 
 	sf::Vector2f spawnArrowPos = getWorldPosition() + velocity * (offset.x + offset.y) * 15.f;
 

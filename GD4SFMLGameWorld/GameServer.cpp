@@ -20,7 +20,7 @@ GameServer::GameServer(sf::Vector2f battlefieldSize)
 	: mThread(&GameServer::executionThread, this)
 	, mListeningState(false)
 	, mClientTimeoutTime(sf::seconds(3.f))
-	, mMaxConnectedPlayers(10)
+	, mMaxConnectedPlayers(13)
 	, mConnectedPlayers(0)
 	, mWorldHeight(720.f)
 	, mBattleFieldRect(0.f, mWorldHeight - battlefieldSize.y, battlefieldSize.x, battlefieldSize.y)
@@ -108,11 +108,46 @@ void GameServer::setListening(bool enable)
 void GameServer::executionThread()
 {
 	setListening(true);
-	std::unique_ptr<SpawnPoint> s(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height / 2), 0.5f, -1));
+	std::unique_ptr<SpawnPoint> s(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 6, mBattleFieldRect.top + mBattleFieldRect.height / 3), 90, -1));
 	mSpawnList.push_back(s.get());
 
-	std::unique_ptr<SpawnPoint> s1(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height), 0, -1));
+	std::unique_ptr<SpawnPoint> s1(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 20, mBattleFieldRect.top + mBattleFieldRect.height / 2), 180, -1));
 	mSpawnList.push_back(s1.get());
+
+	std::unique_ptr<SpawnPoint> s2(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 6, mBattleFieldRect.top + mBattleFieldRect.height / 2.1), 135.0f, -1));
+	mSpawnList.push_back(s2.get());
+
+	std::unique_ptr<SpawnPoint> s3(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 1.1 , mBattleFieldRect.top + mBattleFieldRect.height), 0, -1));
+	mSpawnList.push_back(s3.get());
+
+	std::unique_ptr<SpawnPoint> s4(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 1.3, mBattleFieldRect.top + mBattleFieldRect.height * 1.2), 270, -1));
+	mSpawnList.push_back(s4.get());
+
+	std::unique_ptr<SpawnPoint> s5(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 1.3, mBattleFieldRect.top + mBattleFieldRect.height), 315, -1));
+	mSpawnList.push_back(s5.get());
+
+	std::unique_ptr<SpawnPoint> s6(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 16, mBattleFieldRect.top + mBattleFieldRect.height *1.1), 45, -1));
+	mSpawnList.push_back(s6.get());
+
+	std::unique_ptr<SpawnPoint> s7(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 1.2, mBattleFieldRect.top + mBattleFieldRect.height/2.5), 225, -1));
+	mSpawnList.push_back(s7.get());
+
+	std::unique_ptr<SpawnPoint> s8(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2.27, mBattleFieldRect.top + mBattleFieldRect.height/1.6), 0, -1));
+	mSpawnList.push_back(s8.get());
+
+	std::unique_ptr<SpawnPoint> s9(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2.27, mBattleFieldRect.top + mBattleFieldRect.height/1.1), 180, -1));
+	mSpawnList.push_back(s9.get());
+
+	std::unique_ptr<SpawnPoint> s10(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 3, mBattleFieldRect.top + mBattleFieldRect.height/1.33), 270, -1));
+	mSpawnList.push_back(s10.get());
+
+	std::unique_ptr<SpawnPoint> s11(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 1.8, mBattleFieldRect.top + mBattleFieldRect.height/1.33), 90, -1));
+	mSpawnList.push_back(s11.get());
+
+	std::unique_ptr<SpawnPoint> s12(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2.5, mBattleFieldRect.top + mBattleFieldRect.height * 1.1), 0, -1));
+	mSpawnList.push_back(s12.get());
+
+
 
 	sf::Time stepInterval = sf::seconds(1.f / 60.f);
 	sf::Time stepTime = sf::Time::Zero;
@@ -305,14 +340,14 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 	} break;
 
 	#pragma region PlayerEvent
-		case static_cast<int>(Client::PacketType::PlayerEvent):
-		{
-			sf::Int32 shipIdentifier;
-			sf::Int32 action;
-			packet >> shipIdentifier >> action;
+	case static_cast<int>(Client::PacketType::PlayerEvent):
+	{
+		sf::Int32 shipIdentifier;
+		sf::Int32 action;
+		packet >> shipIdentifier >> action;
 
-			notifyPlayerEvent(shipIdentifier, action);
-		} break;
+		notifyPlayerEvent(shipIdentifier, action);
+	} break;
 
 	#pragma endregion
 
@@ -460,7 +495,7 @@ void GameServer::handleIncomingConnections()
 		
 		while (true)
 		{
-			int rando = rand() % 2;
+			int rando = rand() % 13;
 			SpawnPoint * s = mSpawnList[rando];
 			if (s->shipIdentifier == -1)
 			{
@@ -479,7 +514,7 @@ void GameServer::handleIncomingConnections()
 		packet << mShipIdentifierCounter;
 		packet << mShipInfo[mShipIdentifierCounter].position.x;
 		packet << mShipInfo[mShipIdentifierCounter].position.y;
-		packet << static_cast<sf::Int32>(mShipInfo[mShipIdentifierCounter].texture);
+		packet << mShipInfo[mShipIdentifierCounter].rotation;
 
 		mPeers[mConnectedPlayers]->shipIdentifiers.push_back(mShipIdentifierCounter);
 
@@ -599,8 +634,11 @@ void GameServer::updateClientState()
 	updateClientStatePacket << static_cast<sf::Int32>(mShipInfo.size());
 
 	for (auto ship : mShipInfo)
-		updateClientStatePacket << ship.first << ship.second.position.x << ship.second.position.y 
-		<< ship.second.rotation << ship.second.hitpoints;
+	{
+		updateClientStatePacket << ship.first << ship.second.position.x << ship.second.position.y
+			<< ship.second.rotation << ship.second.hitpoints;
+	}
+		
 
 	sendToAll(updateClientStatePacket);
 }

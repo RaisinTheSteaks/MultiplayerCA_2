@@ -155,4 +155,8 @@ std::string SettingState::textureIDToString(TextureID texture)
 	{
 		return "Frigate";
 	}
+	else if (mTextureID == TextureID::PirateForward)
+	{
+		return "Pirate";
+	}
 }

@@ -108,7 +108,7 @@ Ship::Ship(ShipID type, TextureHolder& textures, const FontHolder& fonts)
 	mHealthDisplay = healthDisplay.get();
 	attachChild(std::move(healthDisplay));
 
-	if (getCategory() == (static_cast<int>(CategoryID::PlayerShip)))
+	/*if (getCategory() == (static_cast<int>(CategoryID::PlayerShip)))
 	{
 		std::unique_ptr<TextNode> missileDisplay(new TextNode(fonts, ""));
 		missileDisplay->setPosition(0, 70);
@@ -122,7 +122,7 @@ Ship::Ship(ShipID type, TextureHolder& textures, const FontHolder& fonts)
 		missileDisplay->setPosition(0, 70);
 		mMissileDisplay = missileDisplay.get();
 		attachChild(std::move(missileDisplay));
-	}
+	}*/
 
 	updateTexts();
 }
@@ -444,15 +444,17 @@ void Ship::createProjectile(SceneNode& node, ProjectileID type, float xOffset, f
 	velocity.y *= cos(((projectile->getMRotation())+90 * fireDirection) * pi / 180) * -1;
 	velocity.x *= sin(((projectile->getMRotation())+90 * fireDirection) * pi / 180) * 1;
 
+
 	projectile->setScale(2.f, 1.f);
 
-	sf::Vector2f spawnArrowPos = getWorldPosition() + velocity * (offset.x + offset.y) * 2.25f;
+	sf::Vector2f spawnArrowPos = getWorldPosition() + velocity * (offset.x + offset.y) * 1.f;
 
 	//spawnArrowPos.x += this->fireDirection;
 
 	projectile->setPosition(spawnArrowPos);
 	projectile->setRotation(projectile->getMRotation() + 90 * fireDirection);
-	projectile->setVelocity(velocity*getMaxSpeed()*10.f);
+	projectile->setVelocity(velocity*getMaxSpeed()*20.f);
+
 	node.attachChild(std::move(projectile));
 }
 

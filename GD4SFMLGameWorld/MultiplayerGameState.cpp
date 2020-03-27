@@ -40,6 +40,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	, mTimeSinceLastPacket(sf::seconds(0.f))
 	, mLobbyState(true)
 	, mTimer(sf::seconds(900))
+	, mLastShipCount()
 	
 {
 	mBroadcastText.setFont(context.fonts->get(FontID::Alternate));
@@ -166,6 +167,7 @@ bool MultiplayerGameState::update(sf::Time dt)
 			requestStackPush(StateID::GameOver);
 		}
 */
+
 		// Only handle the realtime input if the window has focus and the game is unpaused
 		if (mActiveState && mHasFocus && !mLobbyState)
 		{
@@ -342,9 +344,9 @@ void MultiplayerGameState::onDestroy()
 	if (!mHost && mConnected)
 	{
 		// Inform server this client is dying
-		sf::Packet packet;
+		/*sf::Packet packet;
 		packet << static_cast<sf::Int32>(Client::PacketType::Quit);
-		mSocket.send(packet);
+		mSocket.send(packet);*/
 	}
 }
 
@@ -410,8 +412,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//TODO - check if int32 is best for ship id
 		sf::Int32 shipIdentifier;
 		sf::Vector2f shipPosition;
+		float rotation;
 		//TODO - receive a struct type of Spawnpoint that contains pos x, pos y, and direction.
-		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
+		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y >> rotation;
 
 		ScoreKeeper sk = { shipIdentifier,0 };
 		mScoreBoard.push_back(sk);
@@ -426,6 +429,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//TODO - add addShip into World class
 		Ship* ship = mWorld.addShip(shipIdentifier);
 		ship->setPosition(shipPosition);
+		ship->setRotation(rotation);
 		ship->setTexture(getTextureFromFile());
 		//TODO - modify Player to handle 2 different key set (John Screencast)
 		mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, getContext().keys1));
@@ -610,9 +614,6 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//float currentWorldPosition;
 		sf::Int32 shipCount;
 		packet >> shipCount;
-
-		//float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
-
 		
 		//Used to track number of ships across state
 		mLastShipCount = shipCount;

@@ -9,7 +9,8 @@ enum class ActionID
 	MoveRight,
 	MoveUp,
 	MoveDown,
-	Fire,
+	FireLeft,
+	FireRight,
 	LaunchMissile,
 	ActionCount
 };

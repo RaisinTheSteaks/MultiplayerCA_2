@@ -31,5 +31,5 @@ protected:
 
 private:
 	sf::Vector2f mVelocity;
-	int mHitpoints;
+	sf::Int8 mHitpoints;
 };

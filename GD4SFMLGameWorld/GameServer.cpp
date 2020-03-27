@@ -270,32 +270,15 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 	switch (packetType)
 	{
-	case static_cast<int>(Client::PacketType::Quit):
-	{
-		receivingPeer.timedOut = true;
-		detectedTimeout = true;
-	} break;
+#pragma region Quit
+		case static_cast<int>(Client::PacketType::Quit):
+		{
+			receivingPeer.timedOut = true;
+			detectedTimeout = true;
+		} break;
 
-	case static_cast<int>(Client::PacketType::PlayerEvent):
-	{
-		
-		sf::Int32 shipIdentifier;
-		sf::Int32 action;
-		packet >> shipIdentifier >> action;
-		notifyPlayerEvent(shipIdentifier, action);
-		
-	} break;
-
-	case static_cast<int>(Client::PacketType::PlayerRealtimeChange):
-	{
-		sf::Int32 shipIdentifier;
-		sf::Int32 action;
-		bool actionEnabled;
-		packet >> shipIdentifier >> action >> actionEnabled;
-		mShipInfo[shipIdentifier].realtimeActions[action] = actionEnabled;
-		notifyPlayerRealtimeChange(shipIdentifier, action, actionEnabled);
-	} break;
-
+#pragma endregion
+	
 	case static_cast<int>(Client::PacketType::SendTexture):
 	{
 		sf::Int32 texture;
@@ -321,39 +304,65 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 	} break;
 
-	case static_cast<int>(Client::PacketType::RequestCoopPartner):
-	{
-		receivingPeer.shipIdentifiers.push_back(mShipIdentifierCounter);
+	#pragma region PlayerEvent
+		case static_cast<int>(Client::PacketType::PlayerEvent):
+		{
+			sf::Int32 shipIdentifier;
+			sf::Int32 action;
+			packet >> shipIdentifier >> action;
 
-		//TODO - implement spawnpoints
-		mShipInfo[mShipIdentifierCounter].position = sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height / 2);
-		mShipInfo[mShipIdentifierCounter].hitpoints = 100;
+			notifyPlayerEvent(shipIdentifier, action);
+		} break;
+
+	#pragma endregion
+
+	#pragma region PlayerRealtimeChange
+		case static_cast<int>(Client::PacketType::PlayerRealtimeChange):
+		{
+			sf::Int32 shipIdentifier;
+			sf::Int32 action;
+			bool actionEnabled;
+			packet >> shipIdentifier >> action >> actionEnabled;
+			mShipInfo[shipIdentifier].realtimeActions[action] = actionEnabled;
+			notifyPlayerRealtimeChange(shipIdentifier, action, actionEnabled);
+		} break;
+
+	#pragma endregion
+
+	#pragma region RequestCoopPartner
+		case static_cast<int>(Client::PacketType::RequestCoopPartner):
+		{
+			receivingPeer.shipIdentifiers.push_back(mShipIdentifierCounter);
+
+			//TODO - implement spawnpoints
+			mShipInfo[mShipIdentifierCounter].position = sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height / 2);
+			mShipInfo[mShipIdentifierCounter].hitpoints = 100;
 	
 
-		sf::Packet requestPacket;
-		requestPacket << static_cast<sf::Int32>(Server::PacketType::AcceptCoopPartner);
-		requestPacket << mShipIdentifierCounter;
-		requestPacket << mShipInfo[mShipIdentifierCounter].position.x;
-		requestPacket << mShipInfo[mShipIdentifierCounter].position.y;
+			sf::Packet requestPacket;
+			requestPacket << static_cast<sf::Int32>(Server::PacketType::AcceptCoopPartner);
+			requestPacket << mShipIdentifierCounter;
+			requestPacket << mShipInfo[mShipIdentifierCounter].position.x;
+			requestPacket << mShipInfo[mShipIdentifierCounter].position.y;
 
-		receivingPeer.socket.send(requestPacket);
-		mShipCount++;
+			receivingPeer.socket.send(requestPacket);
+			mShipCount++;
 
-		// Inform every other peer about this new plane
-		for(PeerPtr & peer : mPeers)
-		{
-			if (peer.get() != &receivingPeer && peer->ready)
+			// Inform every other peer about this new plane
+			for(PeerPtr & peer : mPeers)
 			{
-				sf::Packet notifyPacket;
-				notifyPacket << static_cast<sf::Int32>(Server::PacketType::PlayerConnect);
-				notifyPacket << mShipIdentifierCounter;
-				notifyPacket << mShipInfo[mShipIdentifierCounter].position.x;
-				notifyPacket << mShipInfo[mShipIdentifierCounter].position.y;
-				peer->socket.send(notifyPacket);
+				if (peer.get() != &receivingPeer && peer->ready)
+				{
+					sf::Packet notifyPacket;
+					notifyPacket << static_cast<sf::Int32>(Server::PacketType::PlayerConnect);
+					notifyPacket << mShipIdentifierCounter;
+					notifyPacket << mShipInfo[mShipIdentifierCounter].position.x;
+					notifyPacket << mShipInfo[mShipIdentifierCounter].position.y;
+					peer->socket.send(notifyPacket);
+				}
 			}
-		}
-		mShipIdentifierCounter++;
-	} break;
+			mShipIdentifierCounter++;
+		} break;
 
 	case static_cast<int>(Client::PacketType::RequestStartGame):
 	{
@@ -367,6 +376,8 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 	} break;
 
+
+#pragma region PositionUpdate
 	case static_cast<int>(Client::PacketType::PositionUpdate):
 	{
 		sf::Int32 numShips;
@@ -385,30 +396,52 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 		}
 	} break;
 
-	case static_cast<int>(Client::PacketType::GameEvent):
-	{
-		sf::Int32 action;
-		float x;
-		float y;
-
-		packet >> action;
-		packet >> x;
-		packet >> y;
-
-		// Enemy explodes: With certain probability, drop pickup
-		// To avoid multiple messages spawning multiple pickups, only listen to first peer (host)
-		//TODO - put our own GameAction here
-		/*if (action == static_cast<int>(GameActionID::EnemyExplode) && randomInt(3) == 0 && &receivingPeer == mPeers[0].get())
+#pragma endregion
+	
+		case static_cast<int>(Client::PacketType::GameEvent):
 		{
-			sf::Packet packet;
-			packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
-			packet << static_cast<sf::Int32>(randomInt(static_cast<int>(PickupID::TypeCount)));
-			packet << x;
-			packet << y;
+			sf::Int32 action;
+			float x;
+			float y;
 
-			sendToAll(packet);
-		}*/
-	}
+			packet >> action;
+			packet >> x;
+			packet >> y;
+
+	#pragma region UpdateScoreboard
+			if (action == static_cast<int>(GameActionID::UpdateScoreboard))
+			{
+				sf::Uint8 killerID;
+				packet >> killerID;
+
+				for (std::size_t i = 0; i < mConnectedPlayers; ++i)
+				{
+					if (mPeers[i]->ready)
+					{
+						sf::Packet packet;
+						packet << action;
+						packet << killerID;
+						mPeers[i]->socket.send(packet);
+					}
+				}
+			}
+	#pragma endregion
+			// Enemy explodes: With certain probability, drop pickup
+			// To avoid multiple messages spawning multiple pickups, only listen to first peer (host)
+
+			//TODO - put our own GameAction here
+
+			/*if (action == static_cast<int>(GameActionID::EnemyExplode) && randomInt(3) == 0 && &receivingPeer == mPeers[0].get())
+			{
+				sf::Packet packet;
+				packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
+				packet << static_cast<sf::Int32>(randomInt(static_cast<int>(PickupID::TypeCount)));
+				packet << x;
+				packet << y;
+
+				sendToAll(packet);
+			}*/
+		}
 	}
 }
 

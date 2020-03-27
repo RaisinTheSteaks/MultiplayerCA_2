@@ -17,6 +17,9 @@ MenuState::MenuState(StateStack& stack, Context context)
 	sf::Texture& texture = context.textures->get(TextureID::TitleScreen);
 	mBackgroundSprite.setTexture(texture);
 
+	mBackgroundSprite.setScale(sf::Vector2f(0.5f,0.7f));
+	//mBackgroundSprite.setPosition();
+
 	auto playButton = std::make_shared<GUI::Button>(context);
 	playButton->setPosition((context.window->getSize().x/2)-100, (context.window->getSize().y / 2));
 	playButton->setText("Play");
@@ -67,6 +70,8 @@ MenuState::MenuState(StateStack& stack, Context context)
 	mGUIContainer.pack(exitButton);
 
 	context.music->play(MusicID::AltMenuTheme);
+	context.music->setVolume(10.f);
+
 }
 
 void MenuState::draw()

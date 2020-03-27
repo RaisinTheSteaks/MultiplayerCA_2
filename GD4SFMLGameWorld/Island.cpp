@@ -21,6 +21,7 @@ Island::Island(IslandID type, const TextureHolder& textures) :
 	, mType(type)
 	, mSprite(textures.get(Table[static_cast<int>(type)].texture), Table[static_cast<int>(type)].textureRect)
 {
+	setHitpoints(1);
 	sf::FloatRect bounds = mSprite.getLocalBounds();
 	mSprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
 }

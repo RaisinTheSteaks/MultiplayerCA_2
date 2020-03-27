@@ -27,7 +27,8 @@ std::vector<PlayerData> initializePlayerData()
 	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::D] = ActionID::MoveRight;
 	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::W] = ActionID::MoveUp;
 	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::S] = ActionID::MoveDown;
-	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::Space] = ActionID::Fire;
+	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::Num1 ] = ActionID::FireLeft;
+	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::Num2 ] = ActionID::FireRight;
 	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::N] = ActionID::LaunchMissile;
 	data[static_cast<int>(PlayerID::Player1)].categoryID = CategoryID::PlayerShip;
 
@@ -35,7 +36,8 @@ std::vector<PlayerData> initializePlayerData()
 	data[static_cast<int>(PlayerID::Player2)].mKeyBinding[sf::Keyboard::Right] = ActionID::MoveRight;
 	data[static_cast<int>(PlayerID::Player2)].mKeyBinding[sf::Keyboard::Up] = ActionID::MoveUp;
 	data[static_cast<int>(PlayerID::Player2)].mKeyBinding[sf::Keyboard::Down] = ActionID::MoveDown;
-	data[static_cast<int>(PlayerID::Player2)].mKeyBinding[sf::Keyboard::Enter] = ActionID::Fire;
+	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::Numpad1] = ActionID::FireLeft;
+	data[static_cast<int>(PlayerID::Player1)].mKeyBinding[sf::Keyboard::Numpad2] = ActionID::FireRight;
 	data[static_cast<int>(PlayerID::Player2)].mKeyBinding[sf::Keyboard::M] = ActionID::LaunchMissile;
 	data[static_cast<int>(PlayerID::Player2)].categoryID = CategoryID::Player2Ship;
 
@@ -47,25 +49,34 @@ std::vector<IslandData> initializeIslandData()
 {
 	std::vector<IslandData> data(static_cast<int>(IslandID::IslandCount));
 	data[static_cast<int>(IslandID::Island)].texture = TextureID::Island;
-	data[static_cast<int>(IslandID::Island)].textureRect = sf::IntRect(0, 0, 140, 170);
+	data[static_cast<int>(IslandID::Island)].textureRect = sf::IntRect(0, 0, 41, 41);
 	data[static_cast<int>(IslandID::Island)].categoryID = CategoryID::Island1;
 	return data;
 }
 
 std::vector<ShipData> initializeShipData()
 {
+	//TODO - Change this for better multiplayer
 	float playerSpeed = 125.f;
 	int playerFireRate = 3;
 	std::vector<ShipData> data(static_cast<int>(ShipID::TypeCount));
 	data[static_cast<int>(ShipID::Battleship)].hitpoints = 100;
-	data[static_cast<int>(ShipID::Battleship)].speed = playerSpeed;
+	data[static_cast<int>(ShipID::Battleship)].speed = playerSpeed / 10;
 	data[static_cast<int>(ShipID::Battleship)].fireInterval = sf::seconds(playerFireRate);
 	data[static_cast<int>(ShipID::Battleship)].textureRect = sf::IntRect(10, 10, 60, 60);
 	data[static_cast<int>(ShipID::Battleship)].texture = TextureID::ShipForward;
 	data[static_cast<int>(ShipID::Battleship)].hasRollAnimation = false;
 	data[static_cast<int>(ShipID::Battleship)].turnSpeed = 0.7f;
-	data[static_cast<int>(ShipID::Battleship)].forward = data[static_cast<int>(ShipID::Battleship)].texture;
+	data[static_cast<int>(ShipID::Battleship)].forward = TextureID::ShipForward;
 
+	data[static_cast<int>(ShipID::Battleship2)].hitpoints = 100;
+	data[static_cast<int>(ShipID::Battleship2)].speed = playerSpeed / 10;
+	data[static_cast<int>(ShipID::Battleship2)].fireInterval = sf::seconds(playerFireRate);
+	data[static_cast<int>(ShipID::Battleship2)].textureRect = sf::IntRect(10, 10, 60, 60);
+	data[static_cast<int>(ShipID::Battleship2)].texture = TextureID::ShipForward;
+	data[static_cast<int>(ShipID::Battleship2)].hasRollAnimation = false;
+	data[static_cast<int>(ShipID::Battleship2)].turnSpeed = 0.7f;
+	data[static_cast<int>(ShipID::Battleship2)].forward = TextureID::ShipForward;
 
 #pragma region Aircraft
 	data[static_cast<int>(ShipID::Raptor)].hitpoints = 20;
@@ -103,13 +114,13 @@ std::vector<ProjectileData> initializeProjectileData()
 	
 	data[static_cast<int>(ProjectileID::AlliedBullet)].damage = 25;
 	data[static_cast<int>(ProjectileID::AlliedBullet)].speed = bulletSpeed;
-	data[static_cast<int>(ProjectileID::AlliedBullet)].texture = TextureID::Entities;
-	data[static_cast<int>(ProjectileID::AlliedBullet)].textureRect = sf::IntRect(175, 64, 3, 14);
+	data[static_cast<int>(ProjectileID::AlliedBullet)].texture = TextureID::Arrows;
+	data[static_cast<int>(ProjectileID::AlliedBullet)].textureRect = sf::IntRect(0, 11, 21, 15);
 
 	data[static_cast<int>(ProjectileID::EnemyBullet)].damage = 10;
 	data[static_cast<int>(ProjectileID::EnemyBullet)].speed = bulletSpeed;
-	data[static_cast<int>(ProjectileID::EnemyBullet)].texture = TextureID::Entities;
-	data[static_cast<int>(ProjectileID::EnemyBullet)].textureRect = sf::IntRect(175, 64, 3, 14);
+	data[static_cast<int>(ProjectileID::EnemyBullet)].texture = TextureID::Arrows;
+	data[static_cast<int>(ProjectileID::EnemyBullet)].textureRect = sf::IntRect(0, 11, 21, 15);
 
 
 	data[static_cast<int>(ProjectileID::Missile)].damage = 200;

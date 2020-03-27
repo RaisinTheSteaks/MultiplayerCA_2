@@ -4,6 +4,9 @@ enum class GameActionID
 {
 	//TODO - add custom GameActionID
 	EnemyExplode,
+	PlayerDeath,
+	UpdateScoreboard,
+	GameActionIDCount
 };
 
 struct Action

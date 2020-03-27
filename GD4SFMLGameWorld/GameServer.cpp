@@ -363,7 +363,8 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 			}
 			mShipIdentifierCounter++;
 		} break;
-
+#pragma endregion
+	
 	case static_cast<int>(Client::PacketType::RequestStartGame):
 	{
 		// Inform every other peer that we are exiting lobbystate
@@ -398,50 +399,52 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 #pragma endregion
 	
-		case static_cast<int>(Client::PacketType::GameEvent):
+	case static_cast<int>(Client::PacketType::GameEvent):
+	{
+		sf::Int32 action;
+		float x;
+		float y;
+
+		packet >> action;
+		packet >> x;
+		packet >> y;
+
+#pragma region UpdateScoreboard
+		std::cout << "RECIEVED game event: " << std::endl;
+
+		if (action == static_cast<int>(GameActionID::UpdateScoreboard))
 		{
-			sf::Int32 action;
-			float x;
-			float y;
+			sf::Int32 killerID;
+			packet >> killerID;
+			sf::Packet outPacket;
+			outPacket << static_cast<sf::Int32>(Server::PacketType::UpdateScoreBoard);
+			//packetOut << action;
+			outPacket << killerID;
+			std::cout << "RECIEVED UPDATE SCOREBOARD: "<< std::endl;
 
-			packet >> action;
-			packet >> x;
-			packet >> y;
-
-	#pragma region UpdateScoreboard
-			if (action == static_cast<int>(GameActionID::UpdateScoreboard))
+			for (std::size_t i = 0; i < mConnectedPlayers; ++i)
 			{
-				sf::Uint8 killerID;
-				packet >> killerID;
-
-				for (std::size_t i = 0; i < mConnectedPlayers; ++i)
+				if (mPeers[i]->ready)
 				{
-					if (mPeers[i]->ready)
-					{
-						sf::Packet packet;
-						packet << action;
-						packet << killerID;
-						mPeers[i]->socket.send(packet);
-					}
+					mPeers[i]->socket.send(outPacket);
 				}
 			}
-	#pragma endregion
-			// Enemy explodes: With certain probability, drop pickup
-			// To avoid multiple messages spawning multiple pickups, only listen to first peer (host)
-
-			//TODO - put our own GameAction here
-
-			/*if (action == static_cast<int>(GameActionID::EnemyExplode) && randomInt(3) == 0 && &receivingPeer == mPeers[0].get())
-			{
-				sf::Packet packet;
-				packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
-				packet << static_cast<sf::Int32>(randomInt(static_cast<int>(PickupID::TypeCount)));
-				packet << x;
-				packet << y;
-
-				sendToAll(packet);
-			}*/
 		}
+#pragma endregion
+		// Enemy explodes: With certain probability, drop pickup
+		// To avoid multiple messages spawning multiple pickups, only listen to first peer (host)
+		//TODO - put our own GameAction here
+		/*if (action == static_cast<int>(GameActionID::EnemyExplode) && randomInt(3) == 0 && &receivingPeer == mPeers[0].get())
+		{
+			sf::Packet packet;
+			packet << static_cast<sf::Int32>(Server::PacketType::SpawnPickup);
+			packet << static_cast<sf::Int32>(randomInt(static_cast<int>(PickupID::TypeCount)));
+			packet << x;
+			packet << y;
+
+			sendToAll(packet);
+		}*/
+	}
 	}
 }
 

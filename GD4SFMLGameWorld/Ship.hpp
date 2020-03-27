@@ -55,6 +55,8 @@ public:
 
 	void setLastHit(sf::Uint8 lastHitID);
 
+	sf::Int32 mLastHitByID;
+	int fireDirection;
 private:
 	virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
 	virtual void updateCurrent(sf::Time dt, CommandQueue& commands);
@@ -110,12 +112,10 @@ private:
 	bool mExplosionBegan;
 	sf::Uint8 mIdentifier;
 	
-	sf::Uint8 mLastHitByID;
 
 	Animation mForward;
 	Animation mFrigateForward;
 	TextureHolder* mTextureHolder;
 	float speed = 0.f;
 
-	int fireDirection;
 };

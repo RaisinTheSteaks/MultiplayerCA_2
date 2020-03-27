@@ -305,14 +305,14 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 	} break;
 
 	#pragma region PlayerEvent
-		case static_cast<int>(Client::PacketType::PlayerEvent):
-		{
-			sf::Int32 shipIdentifier;
-			sf::Int32 action;
-			packet >> shipIdentifier >> action;
+	case static_cast<int>(Client::PacketType::PlayerEvent):
+	{
+		sf::Int32 shipIdentifier;
+		sf::Int32 action;
+		packet >> shipIdentifier >> action;
 
-			notifyPlayerEvent(shipIdentifier, action);
-		} break;
+		notifyPlayerEvent(shipIdentifier, action);
+	} break;
 
 	#pragma endregion
 

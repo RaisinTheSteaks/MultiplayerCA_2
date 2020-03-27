@@ -265,8 +265,8 @@ void Player::initializeActions()
 	//Changed to provide direction of steering and acceleration vs deceleration
 	mActionBinding[ActionID::MoveLeft].action = derivedAction<Ship>(ShipMover(-1, 0, mIdentifier));
 	mActionBinding[ActionID::MoveRight].action = derivedAction<Ship>(ShipMover(1, 0, mIdentifier));
-	mActionBinding[ActionID::MoveUp].action = derivedAction<Ship>(ShipMover(0, 1, mIdentifier));
-	mActionBinding[ActionID::MoveDown].action = derivedAction<Ship>(ShipMover(0, -1, mIdentifier));
+	mActionBinding[ActionID::MoveUp].action = derivedAction<Ship>(ShipMover(0, -1, mIdentifier));
+	mActionBinding[ActionID::MoveDown].action = derivedAction<Ship>(ShipMover(0, 1, mIdentifier));
 
 	mActionBinding[ActionID::FireLeft].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,1));
 	mActionBinding[ActionID::FireRight].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,2));

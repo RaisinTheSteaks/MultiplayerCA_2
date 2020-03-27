@@ -40,6 +40,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	, mTimeSinceLastPacket(sf::seconds(0.f))
 	, mLobbyState(true)
 	, mTimer(sf::seconds(900))
+	, mLastShipCount()
 	
 {
 	mBroadcastText.setFont(context.fonts->get(FontID::Alternate));
@@ -161,10 +162,10 @@ bool MultiplayerGameState::update(sf::Time dt)
 			}
 		}
 
-		if (!foundLocalShip && mGameStarted)
+		/*if (!foundLocalShip && mGameStarted)
 		{
 			requestStackPush(StateID::GameOver);
-		}
+		}*/
 
 		// Only handle the realtime input if the window has focus and the game is unpaused
 		if (mActiveState && mHasFocus && !mLobbyState)
@@ -342,9 +343,9 @@ void MultiplayerGameState::onDestroy()
 	if (!mHost && mConnected)
 	{
 		// Inform server this client is dying
-		sf::Packet packet;
+		/*sf::Packet packet;
 		packet << static_cast<sf::Int32>(Client::PacketType::Quit);
-		mSocket.send(packet);
+		mSocket.send(packet);*/
 	}
 }
 
@@ -595,10 +596,6 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	{
 		//float currentWorldPosition;
 		sf::Int32 shipCount;
-		packet >> shipCount;
-
-		//float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
-
 		packet >> shipCount;
 		
 		//Used to track number of ships across state

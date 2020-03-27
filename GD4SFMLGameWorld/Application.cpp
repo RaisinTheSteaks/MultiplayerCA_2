@@ -120,5 +120,5 @@ void Application::registerStates()
 	mStateStack.registerState<PauseState>(StateID::Pause);
 	mStateStack.registerState<PauseState>(StateID::NetworkPause, true);
 	mStateStack.registerState<SettingState>(StateID::Settings);
-	mStateStack.registerState<GameOverState>(StateID::GameOver, "Mission Failed!");
+	mStateStack.registerState<GameOverState>(StateID::GameOver, "Game Over!");
 }

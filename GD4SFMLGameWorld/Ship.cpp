@@ -411,7 +411,7 @@ void Ship::createBullets(SceneNode& node, const TextureHolder& textures) const
 	switch (mSpreadLevel)
 	{
 	case 1:
-		createProjectile(node, type, 0.0f, 0.6f, textures);
+		createProjectile(node, type, 0.0f, 0.1f, textures);
 		break;
 
 	case 2:
@@ -450,7 +450,7 @@ void Ship::createProjectile(SceneNode& node, ProjectileID type, float xOffset, f
 
 	projectile->setPosition(spawnArrowPos);
 	projectile->setRotation(projectile->getMRotation());
-	projectile->setVelocity(velocity*getMaxSpeed());
+	projectile->setVelocity(velocity*getMaxSpeed() * 10.f);
 	node.attachChild(std::move(projectile));
 }
 

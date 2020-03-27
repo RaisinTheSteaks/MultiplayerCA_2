@@ -18,7 +18,7 @@ class CommandQueue;
 class Player
 {
 public:
-	Player(sf::TcpSocket* socket, sf::Int32 identifier, const KeyBinding* binding);
+	Player(sf::TcpSocket* socket, sf::Uint8 identifier, const KeyBinding* binding);
 
 	void handleEvent(const sf::Event& event, CommandQueue& commands);
 	void handleRealtimeInput(CommandQueue& commands);
@@ -42,7 +42,8 @@ private:
 	std::map<ActionID, Command> mActionBinding;
 	std::map<ActionID, bool> mActionProxies;
 	MissionStatusID mCurrentMissionStatus;
-	int mIdentifier;
+	sf::Uint8 mIdentifier;
 	sf::TcpSocket* mSocket;
-
+	PlayerID mType;
+	sf::Uint8 mScore;
 };

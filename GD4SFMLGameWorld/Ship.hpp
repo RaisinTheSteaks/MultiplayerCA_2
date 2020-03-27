@@ -34,7 +34,7 @@ public:
 
 	float getMaxSpeed() const;
 	float getTurnSpeed() const;
-	void fire();
+	void fire(int fireDirection);
 	void launchMissile();
 	bool isAllied() const;
 	void increaseFireRate();
@@ -46,6 +46,14 @@ public:
 	void playerLocalSound(CommandQueue& command, SoundEffectID effect);
 	sf::Vector2f getDirectionVec();
 	void setDirectionVec(sf::Vector2f dir);
+
+	float getAcceleration();
+	void setAcceleration(float accel);
+
+	float getSpeed();
+	void setSpeed(float speed);
+
+	void setLastHit(sf::Uint8 lastHitID);
 
 private:
 	virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -95,13 +103,19 @@ private:
 		
 	*/
 	sf::Vector2f mDirectionVec;
+	float curAccel = 0.f;
 	std::array<Gun*,2>mGuns;
 
 	bool mPickupsEnabled;
 	bool mExplosionBegan;
-	int mIdentifier;
+	sf::Uint8 mIdentifier;
+	
+	sf::Uint8 mLastHitByID;
 
 	Animation mForward;
 	Animation mFrigateForward;
 	TextureHolder* mTextureHolder;
+	float speed = 0.f;
+
+	int fireDirection;
 };

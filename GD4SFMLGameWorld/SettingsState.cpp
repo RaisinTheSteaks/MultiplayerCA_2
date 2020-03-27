@@ -18,8 +18,9 @@ SettingState::SettingState(StateStack& stack, Context context)
 		addButtonLabel(static_cast<int>(ActionID::MoveRight), x, 1, "Move Right", context);
 		addButtonLabel(static_cast<int>(ActionID::MoveUp), x, 2, "Move Up", context);
 		addButtonLabel(static_cast<int>(ActionID::MoveDown), x, 3, "Move Down", context);
-		addButtonLabel(static_cast<int>(ActionID::Fire), x, 4, "Fire", context);
-		addButtonLabel(static_cast<int>(ActionID::LaunchMissile), x, 5, "Missile", context);
+		addButtonLabel(static_cast<int>(ActionID::FireLeft), x, 4, "FireLeft", context);
+		addButtonLabel(static_cast<int>(ActionID::FireRight), x, 5, "FireRight", context);
+		addButtonLabel(static_cast<int>(ActionID::LaunchMissile), x, 6, "Missile", context);
 	}
 
 	updateLabels();

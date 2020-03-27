@@ -209,11 +209,13 @@ void World::loadTextures()
 
 	//Assets sourced from:
 	//https://opengameart.org/content/water
-	mTextures.load(TextureID::Ocean, "Media/Textures/Ocean/water1.png");
+	mTextures.load(TextureID::Ocean, "Media/Textures/Ocean/large_ocean_background.jpg");
 	//https://opengameart.org/content/sea-warfare-set-ships-and-more
 	mTextures.load(TextureID::Battleship, "Media/Textures/Battleship/ShipBattleshipHullTest.png");
 	mTextures.load(TextureID::BattleshipGun, "Media/Textures/Battleship/WeaponBattleshipStandardGun.png");
-	mTextures.load(TextureID::Island, "Media/Textures/Island/Island.png");
+	mTextures.load(TextureID::Island, "Media/Textures/Island/stoneIslandSprite.png");
+	//mTextures.load(TextureID::Island, "Media/Textures/Island/Island.png");
+	mTextures.load(TextureID::Arrows, "Media/Textures/Arrows.png");
 
 	mTextures.load(TextureID::FrigateForward, "Media/Textures/RomanShips/forwardFrigate.png");
 	mTextures.load(TextureID::ShipForward, "Media/Textures/RomanShips/ShipSpriteSheet.png");
@@ -256,7 +258,6 @@ void World::handleCollisions()
 			player.damage(enemy.getHitpoints());
 			enemy.destroy();
 		}
-
 		else if (matchesCategories(pair, CategoryID::PlayerShip, CategoryID::Pickup))
 		{
 			auto& player = static_cast<Ship&>(*pair.first);
@@ -276,7 +277,7 @@ void World::handleCollisions()
 
 			// Apply projectile damage to Ship, destroy projectile
 			ship.damage(projectile.getDamage());
-
+			ship.setLastHit(projectile.getFirerID());
 			std::unique_ptr<EmitterNode> smoke(new EmitterNode(ParticleID::Smoke));
 			smoke->setPosition(0.f, ship.getBoundingRect().height / 2.f);
 			ship.attachChild(std::move(smoke));
@@ -310,12 +311,13 @@ void World::handleCollisions()
 			//plays sound for when player collides with island
 			
 			ship.playerLocalSound(mCommandQueue, SoundEffectID::Scream);
-			std::cout << "Hit Island!" << std::endl;
-			ship.damage(20);
+
+			//std::cout << "Hit Island!" << std::endl;
+			ship.damage(100);
 		}
 	
 		//player to player collision
-		// each player takes 
+		// each player takes damage
 		else if (matchesCategories(pair, CategoryID::PlayerShip, CategoryID::Player2Ship))
 		{
 			auto& player = static_cast<Ship&>(*pair.first);
@@ -325,11 +327,20 @@ void World::handleCollisions()
 			player.damage(1.f);
 			player2.damage(1.f);
 		}
+		//If a projectile hits an island, destroy itself
+		else if (matchesCategories(pair, CategoryID::Island, CategoryID::AlliedProjectile)
+			|| matchesCategories(pair, CategoryID::Island, CategoryID::EnemyProjectile))
+		{
+			auto& projectile = static_cast<Projectile&>(*pair.second);
+			projectile.destroy();
+		}
 	}
 }
 
 void World::buildScene()
 {
+#pragma region Layers
+
 	// Initialize the different layers
 	for (std::size_t i = 0; i < static_cast<int>(LayerID::LayerCount); ++i)
 	{
@@ -341,27 +352,23 @@ void World::buildScene()
 		mSceneGraph.attachChild(std::move(layer));
 	}
 
-	// Prepare the tiled background
+#pragma endregion
+
 #pragma region Background
+	// Prepare the tiled background
 
 	sf::Texture& texture = mTextures.get(TextureID::Ocean);
 	sf::IntRect textureRect(mWorldBounds);
 	texture.setRepeated(true);
 
-	//add islands
-	sf::Texture& island = mTextures.get(TextureID::Island);
 
 	// Add the background sprite to the scene
 	std::unique_ptr<SpriteNode> backgroundSprite(new SpriteNode(texture, textureRect));
-	backgroundSprite->setPosition(mWorldBounds.left, mWorldBounds.top);
+	backgroundSprite->setPosition(0, mWorldBounds.top);
 	mSceneLayers[static_cast<int>(LayerID::Background)]->attachChild(std::move(backgroundSprite));
 #pragma endregion
 
-	////Add the finish line to the scene
-	//sf::Texture& finishTexture = mTextures.get(TextureID::FinishLine);
-	//std::unique_ptr<SpriteNode> finishSprite(new SpriteNode(finishTexture));
-	//finishSprite->setPosition(0.f, -76.f);
-	//mSceneLayers[static_cast<int>(LayerID::Background)]->attachChild(std::move(finishSprite));
+#pragma region Particle Nodes
 
 	//Add particle nodes for smoke and propellant
 	std::unique_ptr<ParticleNode> smokeNode(new ParticleNode(ParticleID::Smoke, mTextures));
@@ -370,9 +377,17 @@ void World::buildScene()
 	std::unique_ptr<ParticleNode> propellantNode(new ParticleNode(ParticleID::Propellant, mTextures));
 	mSceneLayers[static_cast<int>(LayerID::LowerAir)]->attachChild(std::move(propellantNode));
 
+#pragma endregion
+
+#pragma region Sound Node
+
 	//Add the sound effect node
 	std::unique_ptr<SoundNode> soundNode(new SoundNode(mSounds));
 	mSceneGraph.attachChild(std::move(soundNode));
+
+#pragma endregion
+
+#pragma region Network Node
 
 	// Add network node, if necessary
 	if (mNetworkedWorld)
@@ -381,7 +396,9 @@ void World::buildScene()
 		mNetworkNode = networkNode.get();
 		mSceneGraph.attachChild(std::move(networkNode));
 	}
+#pragma endregion
 
+#pragma region Josh Spawning Code
 	//Spawn Points
 	sf::Vector2f spawnPoint1(50.f, 50.f);
 	sf::Vector2f spawnPoint2(600.f, 100.f);
@@ -401,7 +418,6 @@ void World::buildScene()
 	mPlayerShip->setRotation(180.f);
 	mSceneLayers[static_cast<int>(LayerID::LowerAir)]->attachChild(std::move(player));*/
 
-#pragma region Josh Code
 	for (Ship* ship : mPlayerShip)
 	{
 		std::unique_ptr<Gun> player1ForwardGun(new Gun(ship->getType(), mTextures));
@@ -415,34 +431,133 @@ void World::buildScene()
 	
 #pragma endregion
 
+#pragma region Islands
 
-	// Add player2's Ship
-	/*std::unique_ptr<Ship> player2(new Ship(ShipID::Battleship2, mTextures, mFonts));
-	mPlayerShip2 = player2.get();
-	mPlayerShip2->setPosition(mSpawnPositions[1]);
-	mPlayerShip2->setRotation(180.f);
-	mSceneLayers[static_cast<int>(LayerID::LowerAir)]->attachChild(std::move(player2));*/
-	
-	
 	//adding island(s) 
 	// will add collision later for islands
+
+	//add islands
+	//sf::Texture& island = mTextures.get(TextureID::Island);
+
+	//40 is the width of the island tiles
+	float widthChunk = mCamera.getSize().x / 27.f;
+	float heightChunk = mCamera.getSize().y / 20.f;
+	
+	placeIslands(widthChunk, heightChunk);
+	
+#pragma endregion
+
+	//addEnemies();
+}
+
+void World::placeIslands(float widthChunk, float heightChunk)
+{
+#pragma region Top Left Corner
+	//Corner
 	std::unique_ptr<Island> Island1(new Island(IslandID::Island, mTextures));
 	mIsland[0] = Island1.get();
-	mIsland[0]->setPosition(mCamera.getSize().x / 5.f, mWorldBounds.height - mCamera.getSize().y / 1.5f);
+	mIsland[0]->setPosition(widthChunk * 3, heightChunk * 3);
 	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island1));
 
+	//Vertical arm
 	std::unique_ptr<Island> Island2(new Island(IslandID::Island, mTextures));
 	mIsland[1] = Island2.get();
-	mIsland[1]->setPosition(mCamera.getSize().x / 4.f, mWorldBounds.height - mCamera.getSize().y / 3.f);
+	mIsland[1]->setPosition(widthChunk * 3, heightChunk * 4);
 	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island2));
 
 	std::unique_ptr<Island> Island3(new Island(IslandID::Island, mTextures));
 	mIsland[2] = Island3.get();
-	mIsland[2]->setPosition(mCamera.getSize().x / 1.5f, mWorldBounds.height - mCamera.getSize().y / 1.7f);
+	mIsland[2]->setPosition(widthChunk * 3, heightChunk * 5);
 	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island3));
 
+	std::unique_ptr<Island> Island4(new Island(IslandID::Island, mTextures));
+	mIsland[3] = Island4.get();
+	mIsland[3]->setPosition(widthChunk * 3, heightChunk * 6);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island4));
 
-	//addEnemies();
+	//Horizontal Arm
+	std::unique_ptr<Island> Island5(new Island(IslandID::Island, mTextures));
+	mIsland[4] = Island5.get();
+	mIsland[4]->setPosition(widthChunk * 4, heightChunk * 3);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island5));
+
+	std::unique_ptr<Island> Island6(new Island(IslandID::Island, mTextures));
+	mIsland[5] = Island6.get();
+	mIsland[5]->setPosition(widthChunk * 5, heightChunk * 3);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island6));
+
+	std::unique_ptr<Island> Island7(new Island(IslandID::Island, mTextures));
+	mIsland[6] = Island7.get();
+	mIsland[6]->setPosition(widthChunk * 6, heightChunk * 3);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island7));
+
+#pragma endregion
+
+#pragma region Bottom Right Corner
+	//Corner
+	std::unique_ptr<Island> Island8(new Island(IslandID::Island, mTextures));
+	mIsland[7] = Island8.get();
+	mIsland[7]->setPosition(widthChunk * 23, heightChunk * 17);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island8));
+
+	//Vertical arm
+	std::unique_ptr<Island> Island9(new Island(IslandID::Island, mTextures));
+	mIsland[8] = Island9.get();
+	mIsland[8]->setPosition(widthChunk * 23, heightChunk * 16);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island9));
+
+	std::unique_ptr<Island> Island10(new Island(IslandID::Island, mTextures));
+	mIsland[9] = Island10.get();
+	mIsland[9]->setPosition(widthChunk * 23, heightChunk * 15);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island10));
+
+	std::unique_ptr<Island> Island11(new Island(IslandID::Island, mTextures));
+	mIsland[10] = Island11.get();
+	mIsland[10]->setPosition(widthChunk * 23, heightChunk * 14);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island11));
+
+	//Horizontal Arm
+	std::unique_ptr<Island> Island12(new Island(IslandID::Island, mTextures));
+	mIsland[11] = Island12.get();
+	mIsland[11]->setPosition(widthChunk * 22, heightChunk * 17);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island12));
+
+	std::unique_ptr<Island> Island13(new Island(IslandID::Island, mTextures));
+	mIsland[12] = Island13.get();
+	mIsland[12]->setPosition(widthChunk * 21, heightChunk * 17);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island13));
+
+	std::unique_ptr<Island> Island14(new Island(IslandID::Island, mTextures));
+	mIsland[13] = Island14.get();
+	mIsland[13]->setPosition(widthChunk * 20, heightChunk * 17);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island14));
+
+#pragma endregion
+
+#pragma region Middle
+
+	std::unique_ptr<Island> Island15(new Island(IslandID::Island, mTextures));
+	mIsland[14] = Island15.get();
+	mIsland[14]->setPosition(widthChunk * 10, heightChunk * 8);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island15));
+
+	std::unique_ptr<Island> Island16(new Island(IslandID::Island, mTextures));
+	mIsland[15] = Island16.get();
+	mIsland[15]->setPosition(widthChunk * 14, heightChunk * 8);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island16));
+
+	std::unique_ptr<Island> Island17(new Island(IslandID::Island, mTextures));
+	mIsland[16] = Island17.get();
+	mIsland[16]->setPosition(widthChunk * 10, heightChunk * 12);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island17));
+
+	std::unique_ptr<Island> Island18(new Island(IslandID::Island, mTextures));
+	mIsland[17] = Island18.get();
+	mIsland[17]->setPosition(widthChunk * 14, heightChunk * 12);
+	mSceneLayers[static_cast<int>(LayerID::UpperAir)]->attachChild(std::move(Island18));
+
+
+#pragma endregion
 }
 
 void World::adaptPlayerPosition()
@@ -483,8 +598,6 @@ void World::adaptPlayerVelocity()
 	
 }
 
-
-
 void World::destroyEntitiesOutsideView()
 {
 	Command command;
@@ -508,7 +621,6 @@ void World::guideMissiles()
 		if (!enemy.isDestroyed())
 			mActiveEnemies.push_back(&enemy);
 	});
-
 	// Setup command that guides all missiles to the enemy which is currently closest to the player
 	Command missileGuider;
 	missileGuider.category = static_cast<int>(CategoryID::AlliedProjectile);
@@ -520,7 +632,6 @@ void World::guideMissiles()
 
 		float minDistance = std::numeric_limits<float>::max();
 		Ship* closestEnemy = nullptr;
-
 		// Find closest enemy
 		for (Ship* enemy : mActiveEnemies)
 		{
@@ -549,11 +660,9 @@ sf::FloatRect World::getViewBounds() const
 }
 
 sf::FloatRect World::getBattlefieldBounds() const
-{
-	// Return view bounds + some area at top, where enemies spawn
+{	// Return view bounds + some area at top, where enemies spawn
 	sf::FloatRect bounds = getViewBounds();
 	bounds.top -= 100.f;
 	bounds.height += 100.f;
-
 	return bounds;
 }

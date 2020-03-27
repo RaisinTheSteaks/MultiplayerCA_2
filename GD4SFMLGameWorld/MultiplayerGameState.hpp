@@ -10,6 +10,22 @@
 #include <SFML/Network/TcpSocket.hpp>
 #include <SFML/Network/Packet.hpp>
 
+struct ScoreKeeper
+{
+	ScoreKeeper(sf::Uint32 shipID, sf::Uint8 score) : shipID(shipID), score(score)
+	{
+
+	}
+
+	void operator()(sf::Uint32 shipID, sf::Uint8 score)
+	{
+		shipID = shipID;
+		score = score;
+	}
+
+	sf::Int32 shipID;
+	sf::Uint8 score;
+};
 
 class MultiplayerGameState : public State
 {
@@ -18,6 +34,7 @@ public:
 
 	virtual void draw();
 	virtual bool update(sf::Time dt);
+	void printScoreBoard();
 	virtual bool handleEvent(const sf::Event& event);
 	virtual void onActivate();
 	void onDestroy();
@@ -67,4 +84,10 @@ private:
 	sf::Time mTimer;
 	sf::Clock mClock;
 	sf::Text mTimerText;
+	
+
+	//last ship count is used to store the number of players in the game, gets updated when handling the updateClientState packet
+	sf::Int32 mLastShipCount;
+	std::vector<ScoreKeeper> mScoreBoard;
+
 };

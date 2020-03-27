@@ -20,7 +20,8 @@ KeyBinding::KeyBinding(int controlPreconfiguration) : mKeyMap()
 		mKeyMap[sf::Keyboard::Right] = ActionID::MoveRight;
 		mKeyMap[sf::Keyboard::Up] = ActionID::MoveUp;
 		mKeyMap[sf::Keyboard::Down] = ActionID::MoveDown;
-		mKeyMap[sf::Keyboard::M] = ActionID::Fire;
+		mKeyMap[sf::Keyboard::Numpad1] = ActionID::FireLeft;
+		mKeyMap[sf::Keyboard::Numpad2] = ActionID::FireRight;
 		//mKeyMap[sf::Keyboard::M] = ActionID::LaunchMissile;
 	}
 	else if (controlPreconfiguration == 2)
@@ -30,7 +31,8 @@ KeyBinding::KeyBinding(int controlPreconfiguration) : mKeyMap()
 		mKeyMap[sf::Keyboard::D] = ActionID::MoveRight;
 		mKeyMap[sf::Keyboard::W] = ActionID::MoveUp;
 		mKeyMap[sf::Keyboard::S] = ActionID::MoveDown;
-		mKeyMap[sf::Keyboard::Space] = ActionID::Fire;
+		mKeyMap[sf::Keyboard::Num1] = ActionID::FireLeft;
+		mKeyMap[sf::Keyboard::Num2] = ActionID::FireRight;
 		//mKeyMap[sf::Keyboard::R] = ActionID::LaunchMissile;
 	}
 }
@@ -100,7 +102,8 @@ bool isRealtimeAction(ActionID action)
 	case ActionID::MoveUp:
 		return true;
 
-	case ActionID::Fire:
+	case ActionID::FireLeft:
+	case ActionID::FireRight:
 	default:
 		return false;
 	}

@@ -63,6 +63,7 @@ public:
 private:
 	void loadTextures();
 	void buildScene();
+	void placeIslands(float widthChunk, float heightChunk);
 	void adaptPlayerPosition();
 	void adaptPlayerVelocity();
 	void handleCollisions();
@@ -116,7 +117,7 @@ private:
 	*/
 	std::array<Gun*,2>mPlayerGuns;
 	std::vector<Ship*> mPlayerShip;
-	std::array<Island*,3>mIsland;
+	std::array<Island*,18>mIsland;
 	std::vector<SpawnPoint>	mEnemySpawnPoints;
 	std::vector<Ship*> mActiveEnemies;
 

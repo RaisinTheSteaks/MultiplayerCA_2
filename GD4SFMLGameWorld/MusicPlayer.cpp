@@ -7,11 +7,11 @@ D00183790
 MusicPlayer::MusicPlayer()
 	: mMusic()
 	, mFilenames()
-	, mVolume(0.5f)
+	, mVolume(4.f)
 {
-	mFilenames[MusicID::MenuTheme] = "Media/Music/MenuTheme.ogg";
-	mFilenames[MusicID::MissionTheme] = "Media/Music/MissionTheme.ogg";
-	mFilenames[MusicID::AltMenuTheme] = "Media/Music/battleShipTrack.ogg";
+	mFilenames[MusicID::MenuTheme] = "Media/Music/battleMusic.ogg";
+	mFilenames[MusicID::MissionTheme] = "Media/Music/battleMusic.ogg";
+	mFilenames[MusicID::AltMenuTheme] = "Media/Music/roman_menu_music.ogg";
 }
 
 void MusicPlayer::play(MusicID theme)
@@ -21,6 +21,7 @@ void MusicPlayer::play(MusicID theme)
 	if (!mMusic.openFromFile(filename))
 	{
 		throw std::runtime_error("Music " + filename + " could not be opened");
+		
 	}
 
 	mMusic.setVolume(mVolume);

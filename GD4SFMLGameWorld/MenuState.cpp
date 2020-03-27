@@ -17,8 +17,8 @@ MenuState::MenuState(StateStack& stack, Context context)
 	sf::Texture& texture = context.textures->get(TextureID::TitleScreen);
 	mBackgroundSprite.setTexture(texture);
 
-	mBackgroundSprite.setScale(sf::Vector2f(0.5f,0.7f));
-	//mBackgroundSprite.setPosition();
+	mBackgroundSprite.setScale(sf::Vector2f(0.7f,0.8f));
+	mBackgroundSprite.setPosition(sf::Vector2f(-320.f,0.f));
 
 	auto playButton = std::make_shared<GUI::Button>(context);
 	playButton->setPosition((context.window->getSize().x/2)-100, (context.window->getSize().y / 2));

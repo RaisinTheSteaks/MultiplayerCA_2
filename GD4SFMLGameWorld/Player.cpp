@@ -148,11 +148,12 @@ struct ShipFireTrigger
 	int fireDir;
 };
 
-Player::Player(sf::TcpSocket* socket, sf::Uint8 identifier, const KeyBinding* binding) 
+Player::Player(sf::TcpSocket* socket, sf::Uint8 identifier, const KeyBinding* binding)
 	: mKeyBinding(binding)
 	, mCurrentMissionStatus(MissionStatusID::MissionRunning)
 	, mIdentifier(identifier)
 	, mSocket(socket)
+	, mScore(0)
 {
 	// Set initial action bindings
 	initializeActions();

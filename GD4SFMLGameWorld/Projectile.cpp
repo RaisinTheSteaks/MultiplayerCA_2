@@ -45,9 +45,10 @@ Projectile::Projectile(ProjectileID type, const TextureHolder& textures)
 	}
 }
 
-Projectile::Projectile(ProjectileID type, const TextureHolder & textures, float rotation):
+Projectile::Projectile(ProjectileID type, const TextureHolder & textures, float rotation, sf::Uint8 firerID):
 	Projectile::Projectile(type, textures)
 {
+	mFirer = firerID;
 	mRotation = rotation;
 }
 
@@ -120,4 +121,9 @@ void Projectile::setMRotation(float rotation)
 float Projectile::getMRotation()
 {
 	return mRotation;
+}
+
+sf::Uint8 Projectile::getFirerID()
+{
+	return this->mFirer;
 }

@@ -42,8 +42,8 @@ private:
 	std::map<ActionID, Command> mActionBinding;
 	std::map<ActionID, bool> mActionProxies;
 	MissionStatusID mCurrentMissionStatus;
-	int mIdentifier;
+	sf::Uint8 mIdentifier;
 	sf::TcpSocket* mSocket;
 	PlayerID mType;
-
+	sf::Uint8 mScore;
 };

@@ -70,6 +70,8 @@ MenuState::MenuState(StateStack& stack, Context context)
 	mGUIContainer.pack(exitButton);
 
 	context.music->play(MusicID::AltMenuTheme);
+	context.music->setVolume(10.f);
+
 }
 
 void MenuState::draw()

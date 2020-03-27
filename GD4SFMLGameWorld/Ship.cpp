@@ -308,6 +308,11 @@ void Ship::setSpeed(float speed)
 	this->speed = speed;
 }
 
+void Ship::setLastHit(sf::Uint8 lastHitID)
+{
+	this->mLastHitByID = lastHitID;
+}
+
 void Ship::fire(int fireDir)
 {
 	this->fireDirection = fireDir;
@@ -417,7 +422,7 @@ void Ship::createBullets(SceneNode& node, const TextureHolder& textures) const
 
 void Ship::createProjectile(SceneNode& node, ProjectileID type, float xOffset, float yOffset, const TextureHolder& textures) const
 {
-	std::unique_ptr<Projectile> projectile(new Projectile(type, textures,getRotation()));
+	std::unique_ptr<Projectile> projectile(new Projectile(type, textures,getRotation(), mIdentifier));
 
 	sf::Vector2f offset(xOffset * mSprite.getGlobalBounds().width, yOffset * mSprite.getGlobalBounds().height);
 	sf::Vector2f velocity(1,1);

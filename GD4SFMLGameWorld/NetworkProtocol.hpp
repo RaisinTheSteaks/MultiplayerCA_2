@@ -22,6 +22,7 @@ namespace Server
 		AcceptCoopPartner, //This is used to tell the client that it can spawn a second player. It needs sf::Int32 with id for new plane and two float values with the position of the aircraft
 		SpawnPickup, //sf::Int32 with type of pickup, 2 floats for position
 		UpdateClientState, //This takes a float with the current scrolling distance on the server, an sf::Int32 with the aircraft count. For each aircraft send identifier and two float values for position
+		UpdateScoreBoard, //for each ship send a ship ID & a Uint8 to say that players score.
 		GameOver //This no arguments. It is just used to tell the client that the game is over
 		//we changed this from MissionSuccess to GameOver
 	};
@@ -38,6 +39,7 @@ namespace Client
 		PositionUpdate, //Takes an sf::Int32 variable with the number of local aircraft, and for each aircraft it packs another sf::Int32 variable for the identifer and two float values for the position
 		//Position x, position y, rotation, health
 		GameEvent, //This informs the server of a specific happening in the client's game logic, such as enemy explosions
+		//We use GameEvent to send out the updateScoreboard request to the server
 		Quit //Takes no parameters - it just informs the server that the game state is closing so it can remove its aricraft
 	};
 }

@@ -50,6 +50,9 @@ public:
 
 	float getSpeed();
 	void setSpeed(float speed);
+
+	void setLastHit(sf::Uint8 lastHitID);
+
 private:
 	virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
 	virtual void updateCurrent(sf::Time dt, CommandQueue& commands);
@@ -103,7 +106,9 @@ private:
 
 	bool mPickupsEnabled;
 	bool mExplosionBegan;
-	int mIdentifier;
+	sf::Uint8 mIdentifier;
+	
+	sf::Uint8 mLastHitByID;
 
 	Animation mForward;
 	float speed = 0.f;

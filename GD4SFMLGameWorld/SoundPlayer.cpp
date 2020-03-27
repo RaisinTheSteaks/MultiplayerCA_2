@@ -27,7 +27,7 @@ SoundPlayer::SoundPlayer()
 	mSoundsBuffer.load(SoundEffectID::LaunchMissile, "Media/Sound/LaunchMissile.wav");
 	mSoundsBuffer.load(SoundEffectID::CollectPickup, "Media/Sound/CollectPickup.wav");
 	mSoundsBuffer.load(SoundEffectID::Button, "Media/Sound/Button.wav");
-	mSoundsBuffer.load(SoundEffectID::Scream, "Media/Sound/scream.wav");
+	mSoundsBuffer.load(SoundEffectID::Scream, "Media/Sound/breakingWood.wav");
 
 	sf::Listener::setDirection(0.f, 0.f, -1.f);
 }

@@ -45,7 +45,7 @@ std::vector<IslandData> initializeIslandData()
 {
 	std::vector<IslandData> data(static_cast<int>(IslandID::IslandCount));
 	data[static_cast<int>(IslandID::Island)].texture = TextureID::Island;
-	data[static_cast<int>(IslandID::Island)].textureRect = sf::IntRect(0, 0, 140, 170);
+	data[static_cast<int>(IslandID::Island)].textureRect = sf::IntRect(0, 0, 41, 41);
 	data[static_cast<int>(IslandID::Island)].categoryID = CategoryID::Island1;
 	return data;
 }

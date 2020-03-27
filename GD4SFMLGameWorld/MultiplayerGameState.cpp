@@ -6,6 +6,7 @@
 #include <SFML/Network/IpAddress.hpp>
 
 #include <fstream>
+#include <iostream>
 
 
 sf::IpAddress getAddressFromFile()
@@ -83,6 +84,7 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 
 	// Play game theme
 	context.music->play(MusicID::MissionTheme);
+	context.music->setVolume(3.f);
 }
 
 void MultiplayerGameState::draw()
@@ -233,6 +235,25 @@ bool MultiplayerGameState::update(sf::Time dt)
 	return true;
 }
 
+void MultiplayerGameState::printScoreBoard()
+{
+	std::ofstream outStream("scoreBoard.txt");
+	if (outStream.is_open())
+	{
+		outStream.clear();
+		outStream << "ScoreBoard\n________________\n";
+		for (std::vector<ScoreKeeper>::iterator it = mScoreBoard.begin(); it != mScoreBoard.end(); ++it)
+		{
+			outStream << "[" << it->shipID << "," << it->score << "]\n";
+		}
+		outStream.close();
+	}
+	else
+	{
+		std::cout << "Cannot open file" << std::endl;
+	}
+}
+
 bool MultiplayerGameState::handleEvent(const sf::Event& event)
 {
 	// Game input handling
@@ -323,45 +344,51 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 {
 	switch (packetType)
 	{
+#pragma region BroadcastMessage
 		// Send message to all clients
-	case static_cast<int>(Server::PacketType::BroadcastMessage):
-	{
-		std::string message;
-		packet >> message;
-		mBroadcasts.push_back(message);
-
-		// Just added first message, display immediately
-		if (mBroadcasts.size() == 1)
+		case static_cast<int>(Server::PacketType::BroadcastMessage) :
 		{
-			mBroadcastText.setString(mBroadcasts.front());
-			centreOrigin(mBroadcastText);
-			mBroadcastElapsedTime = sf::Time::Zero;
-		}
-	} break;
+			std::string message;
+			packet >> message;
+			mBroadcasts.push_back(message);
 
-	// Sent by the server to order to spawn player 1 airplane on connect
-	case static_cast<int>(Server::PacketType::SpawnSelf):
-	{
-		//TODO - check if int32 is best for ship id
-		sf::Int32 shipIdentifier;
-		sf::Vector2f shipPosition;
+			// Just added first message, display immediately
+			if (mBroadcasts.size() == 1)
+			{
+				mBroadcastText.setString(mBroadcasts.front());
+				centreOrigin(mBroadcastText);
+				mBroadcastElapsedTime = sf::Time::Zero;
+			}
+		} break;
+
+#pragma endregion
+
+#pragma region SpawnSelf
+		// Sent by the server to order to spawn player 1 airplane on connect
+		case static_cast<int>(Server::PacketType::SpawnSelf) :
+		{
+			//TODO - check if int32 is best for ship id
+			sf::Int32 shipIdentifier;
+			sf::Vector2f shipPosition;
 
 
-		//TODO - receive a struct type of Spawnpoint that contains pos x, pos y, and direction.
-		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
+			//TODO - receive a struct type of Spawnpoint that contains pos x, pos y, and direction.
+			packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
 
-		//TODO - add addShip into World class
-		Ship* ship = mWorld.addShip(shipIdentifier);
-		ship->setPosition(shipPosition);
+			//TODO - add addShip into World class
+			Ship* ship = mWorld.addShip(shipIdentifier);
+			ship->setPosition(shipPosition);
 
-		//TODO - modify Player to handle 2 different key set (John Screencast)
-		mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, getContext().keys1));
-		mLocalPlayerIdentifiers.push_back(shipIdentifier);
+			//TODO - modify Player to handle 2 different key set (John Screencast)
+			mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, getContext().keys1));
+			mLocalPlayerIdentifiers.push_back(shipIdentifier);
 
-		mGameStarted = true;
-	} break;
+			mGameStarted = true;
+		} break;
 
-	 
+#pragma endregion
+
+#pragma region PlayerConnect
 	case static_cast<int>(Server::PacketType::PlayerConnect):
 	{
 		sf::Int32 shipIdentifier;
@@ -375,8 +402,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//TODO - modify Player to handle 2 different key set (John Screencast)
 		mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, nullptr));
 	} break;
-
-	// 
+#pragma endregion
+	
+#pragma region PlayerDisconnect
 	case static_cast<int>(Server::PacketType::PlayerDisconnect):
 	{
 		sf::Int32 shipIdentifier;
@@ -386,8 +414,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		mWorld.removeShip(shipIdentifier);
 		mPlayers.erase(shipIdentifier);
 	} break;
+#pragma endregion
 
-	// 
+#pragma region InitialState
 	case static_cast<int>(Server::PacketType::InitialState):
 	{
 		sf::Int32 shipCount;
@@ -416,8 +445,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 			mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, nullptr));
 		}
 	} break;
-
-	//
+#pragma endregion
+	
+#pragma region AcceptCoopPartner
 	case static_cast<int>(Server::PacketType::AcceptCoopPartner):
 	{
 		//TODO -read spawn position x and y
@@ -430,7 +460,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, getContext().keys2));
 		mLocalPlayerIdentifiers.push_back(shipIdentifier);
 	} break;
+#pragma endregion 
 
+#pragma region PlayerEvent
 	// Player event (like missile fired) occurs
 	case static_cast<int>(Server::PacketType::PlayerEvent):
 	{
@@ -443,7 +475,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		if (itr != mPlayers.end())
 			itr->second->handleNetworkEvent(static_cast<ActionID>(action), mWorld.getCommandQueue());
 	} break;
+#pragma endregion
 
+#pragma region PlayerRealtimeChange
 	// Player's movement or fire keyboard state changes
 	case static_cast<int>(Server::PacketType::PlayerRealtimeChange):
 	{
@@ -457,29 +491,55 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		if (itr != mPlayers.end())
 			itr->second->handleNetworkRealtimeChange(static_cast<ActionID>(action), actionEnabled);
 	} break;
+#pragma endregion
 
+#pragma region GameOver
 	case static_cast<int>(Server::PacketType::GameOver) :
 	{
+		printScoreBoard();
 		requestStackPush(StateID::GameOver);
 	} break;
 	// Pickup created
+#pragma endregion
+
+#pragma region SpawnPickup
 	case static_cast<int>(Server::PacketType::SpawnPickup):
 	{
 		sf::Int32 type;
 		sf::Vector2f position;
 		packet >> type >> position.x >> position.y;
-
 		//TODO - add createPickup to World class
 		mWorld.createPickup(position, static_cast<PickupID>(type));
 	} break;
+#pragma endregion
 
-	//
+#pragma region UpdateScoreBoard
+	case static_cast<int>(Server::PacketType::UpdateScoreBoard):
+	{
+		/*
+			Packet >> {ship ID, shipScore} * #of ships			
+			*/
+		for (sf::Int32 i = 0; i < mLastShipCount; i++)
+		{
+			sf::Int32 shipID;
+			sf::Uint8 score;
+			packet >> shipID >> score;
+			ScoreKeeper sk(shipID,score);
+			mScoreBoard.push_back(sk);
+		}
+	}break;
+#pragma endregion
+
+#pragma region UpdateClientState
 	case static_cast<int>(Server::PacketType::UpdateClientState):
 	{
 		float currentWorldPosition;
 		sf::Int32 shipCount;
 		packet >> currentWorldPosition >> shipCount;
-
+		
+		//Used to track number of ships across state
+		mLastShipCount = shipCount;
+		
 		float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
 
 		// Set the world's scroll compensation according to whether the view is behind or too advanced
@@ -501,5 +561,6 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 			}
 		}
 	} break;
+#pragma endregion
 	}
 }

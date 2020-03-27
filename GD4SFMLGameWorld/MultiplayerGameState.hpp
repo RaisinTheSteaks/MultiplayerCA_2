@@ -12,12 +12,12 @@
 
 struct ScoreKeeper
 {
-	ScoreKeeper(sf::Uint32 shipID, sf::Uint8 score) : shipID(shipID), score(score)
+	ScoreKeeper(sf::Int32 shipID, sf::Uint8 score) : shipID(shipID), score(score)
 	{
 
 	}
 
-	void operator()(sf::Uint32 shipID, sf::Uint8 score)
+	void operator()(sf::Int32 shipID, sf::Uint8 score)
 	{
 		shipID = shipID;
 		score = score;

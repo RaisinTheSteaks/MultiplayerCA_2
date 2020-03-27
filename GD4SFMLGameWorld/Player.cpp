@@ -32,8 +32,6 @@ struct ShipMover
 
 	void operator() (Ship& ship, sf::Time) const
 	{
-		//std::cout << "POS:" << ship.getPosition().x << "," << ship.getPosition().y << std::endl;
-
 		if (ship.getIdentifier() == shipID)
 		{
 			float yVel = 0.f;
@@ -74,33 +72,15 @@ struct ShipMover
 			}
 			else if (acceleration < 0)
 			{
-				if (curSpeed > (ship.getMaxSpeed() * -0.5f))
+				if (curSpeed > (ship.getMaxSpeed() * -0.35f))
 				{
 					ship.setSpeed(curSpeed + acceleration);
 				}
 			}
 
-			int xPositive = 0, yPositive = 0;
-			//Moving Backwards
-			if (curSpeed < 0)
-			{
-				yPositive = 1;
-				xPositive = -1;
-			}
-			//Moving Forward
-			else if (curSpeed > 0)
-			{
-				yPositive = 1;
-				xPositive = -1;
-			}
-			//maintaining speed
-			else
-			{
-				yPositive = -1;
-				xPositive = 1;
-			}
-			velocity.y = cosElement * curSpeed * yPositive;
-			velocity.x = sinElement * curSpeed * xPositive;
+
+			velocity.y = cosElement * curSpeed * -1;
+			velocity.x = sinElement * curSpeed * 1;
 
 			//Trying to get a slow deceleration
 			/*else if (acceleration== 0)
@@ -138,10 +118,13 @@ struct ShipFireTrigger
 	{
 	}
 
-	void operator() (Ship& ship, sf::Time) const
+	void operator() (Ship & ship, sf::Time) const
 	{
 		if (ship.getIdentifier() == shipID)
+		{
+			ship.fireDirection = fireDir;
 			ship.fire(fireDir);
+		}
 	}
 
 	int shipID;
@@ -268,8 +251,8 @@ void Player::initializeActions()
 	mActionBinding[ActionID::MoveUp].action = derivedAction<Ship>(ShipMover(0, 1, mIdentifier));
 	mActionBinding[ActionID::MoveDown].action = derivedAction<Ship>(ShipMover(0, -1, mIdentifier));
 
-	mActionBinding[ActionID::FireLeft].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,1));
-	mActionBinding[ActionID::FireRight].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,2));
+	mActionBinding[ActionID::FireLeft].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,-1));
+	mActionBinding[ActionID::FireRight].action = derivedAction<Ship>(ShipFireTrigger(mIdentifier,1));
 	//mActionBinding[ActionID::LaunchMissile].action = derivedAction<Ship>([](Ship& a, sf::Time) { a.launchMissile(); });
 }
 

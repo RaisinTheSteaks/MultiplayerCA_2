@@ -61,7 +61,7 @@ std::vector<ShipData> initializeShipData()
 	int playerFireRate = 3;
 	std::vector<ShipData> data(static_cast<int>(ShipID::TypeCount));
 	data[static_cast<int>(ShipID::Battleship)].hitpoints = 100;
-	data[static_cast<int>(ShipID::Battleship)].speed = playerSpeed / 10;
+	data[static_cast<int>(ShipID::Battleship)].speed = playerSpeed / 15;
 	data[static_cast<int>(ShipID::Battleship)].fireInterval = sf::seconds(playerFireRate);
 	data[static_cast<int>(ShipID::Battleship)].textureRect = sf::IntRect(10, 10, 60, 60);
 	data[static_cast<int>(ShipID::Battleship)].texture = TextureID::ShipForward;

@@ -161,11 +161,11 @@ bool MultiplayerGameState::update(sf::Time dt)
 			}
 		}
 
-		if (!foundLocalShip && mGameStarted)
+		/*if (!foundLocalShip && mGameStarted)
 		{
 			requestStackPush(StateID::GameOver);
 		}
-
+*/
 		// Only handle the realtime input if the window has focus and the game is unpaused
 		if (mActiveState && mHasFocus && !mLobbyState)
 		{
@@ -413,6 +413,10 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//TODO - receive a struct type of Spawnpoint that contains pos x, pos y, and direction.
 		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
 
+		ScoreKeeper sk = { shipIdentifier,0 };
+		mScoreBoard.push_back(sk);
+		std::cout << "Adding self: " << shipIdentifier << " to scoreboard" << std::endl;
+
 		sf::Packet packet;
 		packet << static_cast<sf::Int32>(Client::PacketType::SendTexture);
 		packet << shipIdentifier;
@@ -439,6 +443,10 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		sf::Vector2f shipPosition;
 		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
 
+		ScoreKeeper sk = {shipIdentifier,0};
+
+		mScoreBoard.push_back(sk);
+		std::cout << "Adding " << shipIdentifier << " to scoreboard" << std::endl;
 		//TODO - add addShip into World class
 		Ship* ship = mWorld.addShip(shipIdentifier);
 		ship->setPosition(shipPosition);
@@ -576,17 +584,23 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 #pragma region UpdateScoreBoard
 	case static_cast<int>(Server::PacketType::UpdateScoreBoard):
 	{
-		/*
-			Packet >> {ship ID, shipScore} * #of ships			
-			*/
-		for (sf::Int32 i = 0; i < mLastShipCount; i++)
+
+		sf::Int32 shipID;
+		//sf::Uint8 score;
+
+		packet >> shipID;
+		std::cout << "Recieved Killer SHIP: " + shipID << "[]" <<std::endl;
+		std::cout << mScoreBoard.size() << " elements in scoreboard" << std::endl;
+		for (auto it = begin(mScoreBoard); it != end(mScoreBoard); ++it)
 		{
-			sf::Int32 shipID;
-			sf::Uint8 score;
-			packet >> shipID >> score;
-			ScoreKeeper sk(shipID,score);
-			mScoreBoard.push_back(sk);
+			std::cout << "EachShip in the scoreboard: " + it->shipID << std::endl;
+			if (it->shipID == shipID)
+			{
+				it->score++;
+				std::cout << "Ship new SCORE: " + it->score<< std::endl;
+			}
 		}
+
 	}break;
 #pragma endregion
 
@@ -599,7 +613,6 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 
 		//float currentViewPosition = mWorld.getViewBounds().top + mWorld.getViewBounds().height;
 
-		packet >> shipCount;
 		
 		//Used to track number of ships across state
 		mLastShipCount = shipCount;
@@ -627,7 +640,15 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 				if (hitPoints > 0)
 					ship->setHitpoints(hitPoints);
 				else
+				{
+					sf::Packet outPacket;
+					outPacket << static_cast<int>(Client::PacketType::GameEvent);
+					outPacket << static_cast<int>(GameActionID::UpdateScoreboard);
+					outPacket << 0.f << 0.f;
+					outPacket << ship->mLastHitByID;
+					mSocket.send(outPacket);
 					ship->destroy();
+				}
 			}
 		}
 	} break;

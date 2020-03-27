@@ -21,7 +21,7 @@ namespace Server
 		PlayerDisconnect, //Sends one sf::Int32 with identifier for aircraft that has diconnected
 		AcceptCoopPartner, //This is used to tell the client that it can spawn a second player. It needs sf::Int32 with id for new plane and two float values with the position of the aircraft
 		SpawnPickup, //sf::Int32 with type of pickup, 2 floats for position
-		UpdateClientState, //This takes a float with the current scrolling distance on the server, an sf::Int32 with the aircraft count. For each aircraft send identifier and two float values for position
+		UpdateClientState, //This takes a float with the current scrolling distance on the server, an sf::Int32 with the aircraft count. For each aircraft send identifier and two float values for position also sends in the ship's id of who last hit it
 		TextureInfo,
 		StartGame,
 		UpdateScoreBoard, //for each ship send a ship ID & a Uint8 to say that players score.

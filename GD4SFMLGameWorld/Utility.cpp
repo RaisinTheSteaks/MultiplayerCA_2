@@ -199,6 +199,10 @@ TextureID getTextureFromFile()
 			{
 				return TextureID::FrigateForward;
 			}
+			else if (texture == "Pirate")
+			{
+				return TextureID::PirateForward;
+			}
 		}
 	}
 
@@ -220,6 +224,10 @@ void writeTextureToFile(TextureID texture)
 	else if (texture == TextureID::FrigateForward)
 	{
 		input = "Frigate";
+	}
+	else if (texture == TextureID::PirateForward)
+	{
+		input = "Pirate";
 	}
 
 	std::ofstream out("shipTexture.txt");

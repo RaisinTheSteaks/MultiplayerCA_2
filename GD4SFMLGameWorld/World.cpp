@@ -219,6 +219,7 @@ void World::loadTextures()
 
 	mTextures.load(TextureID::FrigateForward, "Media/Textures/RomanShips/forwardFrigate.png");
 	mTextures.load(TextureID::ShipForward, "Media/Textures/RomanShips/ShipSpriteSheet.png");
+	mTextures.load(TextureID::PirateForward, "Media/Textures/RomanShips/PirateShipSprite.png");
 }
 
 bool matchesCategories(SceneNode::Pair& colliders, CategoryID type1, CategoryID type2)

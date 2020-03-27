@@ -108,7 +108,7 @@ Ship::Ship(ShipID type, TextureHolder& textures, const FontHolder& fonts)
 	mHealthDisplay = healthDisplay.get();
 	attachChild(std::move(healthDisplay));
 
-	if (getCategory() == (static_cast<int>(CategoryID::PlayerShip)))
+	/*if (getCategory() == (static_cast<int>(CategoryID::PlayerShip)))
 	{
 		std::unique_ptr<TextNode> missileDisplay(new TextNode(fonts, ""));
 		missileDisplay->setPosition(0, 70);
@@ -122,7 +122,7 @@ Ship::Ship(ShipID type, TextureHolder& textures, const FontHolder& fonts)
 		missileDisplay->setPosition(0, 70);
 		mMissileDisplay = missileDisplay.get();
 		attachChild(std::move(missileDisplay));
-	}
+	}*/
 
 	updateTexts();
 }

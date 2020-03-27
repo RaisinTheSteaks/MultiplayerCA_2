@@ -411,8 +411,9 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//TODO - check if int32 is best for ship id
 		sf::Int32 shipIdentifier;
 		sf::Vector2f shipPosition;
+		float rotation;
 		//TODO - receive a struct type of Spawnpoint that contains pos x, pos y, and direction.
-		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
+		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y >> rotation;
 
 		sf::Packet packet;
 		packet << static_cast<sf::Int32>(Client::PacketType::SendTexture);
@@ -423,6 +424,7 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//TODO - add addShip into World class
 		Ship* ship = mWorld.addShip(shipIdentifier);
 		ship->setPosition(shipPosition);
+		ship->setRotation(rotation);
 		ship->setTexture(getTextureFromFile());
 		//TODO - modify Player to handle 2 different key set (John Screencast)
 		mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, getContext().keys1));

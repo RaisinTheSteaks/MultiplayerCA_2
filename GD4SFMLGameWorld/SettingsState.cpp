@@ -44,7 +44,7 @@ SettingState::SettingState(StateStack& stack, Context context)
 	mGUIContainer.pack(mSpriteLabel);
 
 	auto backButton = std::make_shared<GUI::Button>(context);
-	backButton->setPosition(80.f, 620.f);
+	backButton->setPosition(80.f, 700.f);
 	backButton->setText("Back");
 	backButton->setCallback([this]()
 		{

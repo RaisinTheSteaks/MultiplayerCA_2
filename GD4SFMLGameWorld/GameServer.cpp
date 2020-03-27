@@ -191,18 +191,23 @@ void GameServer::tick()
 	updateClientState();
 
 	// Check for mission success = all planes with position.y < offset
-	bool allShipDone = true;
-	for (auto pair : mShipInfo)
+	bool winner = true;
+	if (mShipInfo.size() > 1 || mLobbyState)
+		winner = false;
+
+	if (winner)
 	{
-		//TODO - add end game condition here
-		// As long as one player has not crossed the finish line yet, set variable to false
-		if (pair.second.position.y > 0.f)
-			allShipDone = false;
-	}
-	if (allShipDone)
-	{
+		sf::Int32 identifier;
+		for (PeerPtr& peer : mPeers)
+		{
+			if (!peer->shipIdentifiers.empty())
+			{
+				identifier = peer->shipIdentifiers[0];
+			}
+		}
 		sf::Packet gameOverPacket;
 		gameOverPacket << static_cast<sf::Int32>(Server::PacketType::GameOver);
+		gameOverPacket << identifier;
 		sendToAll(gameOverPacket);
 	}
 

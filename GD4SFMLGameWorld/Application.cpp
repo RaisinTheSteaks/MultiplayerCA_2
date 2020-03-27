@@ -121,4 +121,6 @@ void Application::registerStates()
 	mStateStack.registerState<PauseState>(StateID::NetworkPause, true);
 	mStateStack.registerState<SettingState>(StateID::Settings);
 	mStateStack.registerState<GameOverState>(StateID::GameOver, "Game Over!");
+	mStateStack.registerState<GameOverState>(StateID::Win, "Winner Winner Chicken Dinner!");
+
 }

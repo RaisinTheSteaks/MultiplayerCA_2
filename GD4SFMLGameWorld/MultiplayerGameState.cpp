@@ -154,7 +154,13 @@ bool MultiplayerGameState::update(sf::Time dt)
 
 				// No more players left: Mission failed
 				if (mPlayers.empty())
+				{
+					
 					requestStackPush(StateID::GameOver);
+						
+					
+				}
+					
 			}
 			else
 			{
@@ -552,7 +558,19 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	case static_cast<int>(Server::PacketType::GameOver) :
 	{
 		printScoreBoard();
-		requestStackPush(StateID::GameOver);
+		sf::Int32 mIdentifiers;
+		//bool winner = false;
+		packet >> mIdentifiers;
+
+		bool isLocalPlane = std::find(mLocalPlayerIdentifiers.begin(), mLocalPlayerIdentifiers.end(), mIdentifiers) != mLocalPlayerIdentifiers.end();
+
+		if(isLocalPlane)
+			requestStackPush(StateID::Win);
+		else
+			requestStackPush(StateID::GameOver);
+
+
+		
 	} break;
 
 	case static_cast<int>(Server::PacketType::TextureInfo) :

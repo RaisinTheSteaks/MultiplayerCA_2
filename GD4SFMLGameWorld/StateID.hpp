@@ -12,6 +12,7 @@ enum class StateID
 	Pause,
 	Settings,
 	GameOver,
+	Win,
 	NetworkPause,
 	HostGame,
 	JoinGame

@@ -8,6 +8,7 @@
 #include <SFML/Network/TcpListener.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 #include "GameActionID.hpp"
+#include "TextureID.hpp"
 
 #include <vector>
 #include <memory>
@@ -26,6 +27,14 @@ public:
 
 private:
 	// A GameServerRemotePeer refers to one instance of the game, may it be local or from another computer
+	struct SpawnPoint
+	{
+		SpawnPoint(sf::Vector2f position, float rotation, sf::Int32 shipIdentifier);
+
+		sf::Vector2f			position;
+		float					rotation;
+		sf::Int32				shipIdentifier;
+	};
 	struct RemotePeer
 	{
 		RemotePeer();
@@ -43,6 +52,7 @@ private:
 		sf::Vector2f				position;
 		sf::Int32					hitpoints;
 		float						rotation;
+		TextureID					texture;
 		std::map<sf::Int32, bool>	realtimeActions;
 	};
 
@@ -88,6 +98,8 @@ private:
 	sf::Int32 mShipIdentifierCounter;
 	bool mWaitingThreadEnd;
 
-	//sf::Time mLastSpawnTime;
+	bool mLobbyState;
+	sf::Time mGameTimer;
+	std::vector<SpawnPoint*> mSpawnList;
 	//sf::Time mTimeForNextSpawn;
 };

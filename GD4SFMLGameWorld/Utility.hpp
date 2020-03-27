@@ -7,6 +7,8 @@ D00183790
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include "Animation.hpp"
+#include "TextureID.hpp"
+
 namespace sf
 {
 	class Sprite;
@@ -34,5 +36,10 @@ sf::Vector2f unitVector(sf::Vector2f vector);
 
 // Random number generation
 int	randomInt(int exclusiveMax);
+
+TextureID getTextureFromFile();
+void writeTextureToFile(TextureID texture);
+
+
 
 #include "Utility.inl"

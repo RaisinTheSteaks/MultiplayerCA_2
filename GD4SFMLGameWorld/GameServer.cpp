@@ -4,6 +4,7 @@
 #include "Pickup.hpp"
 #include "Aircraft.hpp"
 
+
 #include <iostream>
 
 #include <SFML/Network/Packet.hpp>
@@ -21,15 +22,15 @@ GameServer::GameServer(sf::Vector2f battlefieldSize)
 	, mClientTimeoutTime(sf::seconds(3.f))
 	, mMaxConnectedPlayers(10)
 	, mConnectedPlayers(0)
-	, mWorldHeight(5000.f)
+	, mWorldHeight(720.f)
 	, mBattleFieldRect(0.f, mWorldHeight - battlefieldSize.y, battlefieldSize.x, battlefieldSize.y)
-	//, mBattleFieldScrollSpeed(-50.f)
 	, mShipCount(0)
 	, mPeers(1)
 	, mShipIdentifierCounter(1)
 	, mWaitingThreadEnd(false)
-	//, mLastSpawnTime(sf::Time::Zero)
-	//, mTimeForNextSpawn(sf::seconds(5.f))
+	, mGameTimer(sf::seconds(900))
+	, mLobbyState(true)
+	, mSpawnList()
 {
 	mListenerSocket.setBlocking(false);
 	mPeers[0].reset(new RemotePeer());
@@ -107,6 +108,11 @@ void GameServer::setListening(bool enable)
 void GameServer::executionThread()
 {
 	setListening(true);
+	std::unique_ptr<SpawnPoint> s(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height / 2), 0.5f, -1));
+	mSpawnList.push_back(s.get());
+
+	std::unique_ptr<SpawnPoint> s1(new SpawnPoint(sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height), 0, -1));
+	mSpawnList.push_back(s1.get());
 
 	sf::Time stepInterval = sf::seconds(1.f / 60.f);
 	sf::Time stepTime = sf::Time::Zero;
@@ -172,6 +178,13 @@ void GameServer::tick()
 			mShipInfo.erase(itr++);
 		else
 			++itr;
+	}
+
+	if (now() >= mGameTimer && !mLobbyState)
+	{
+		sf::Packet gameOverPacket;
+		gameOverPacket << static_cast<sf::Int32>(Server::PacketType::GameOver);
+		sendToAll(gameOverPacket);
 	}
 
 	// Check if its time to attempt to spawn enemies
@@ -265,11 +278,12 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 	case static_cast<int>(Client::PacketType::PlayerEvent):
 	{
+		
 		sf::Int32 shipIdentifier;
 		sf::Int32 action;
 		packet >> shipIdentifier >> action;
-
 		notifyPlayerEvent(shipIdentifier, action);
+		
 	} break;
 
 	case static_cast<int>(Client::PacketType::PlayerRealtimeChange):
@@ -280,6 +294,31 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 		packet >> shipIdentifier >> action >> actionEnabled;
 		mShipInfo[shipIdentifier].realtimeActions[action] = actionEnabled;
 		notifyPlayerRealtimeChange(shipIdentifier, action, actionEnabled);
+	} break;
+
+	case static_cast<int>(Client::PacketType::SendTexture):
+	{
+		sf::Int32 texture;
+		sf::Int32 shipIdentifier;
+
+		packet >> shipIdentifier;
+		packet >> texture;
+		mShipInfo[shipIdentifier].texture = static_cast<TextureID>(texture);
+
+		for (auto const& pair : mShipInfo) {
+			std::cout << "{" << pair.first << ": " << static_cast<sf::Int32>(pair.second.texture) << "}" << std::endl;
+		}
+
+		for (auto const& pair : mShipInfo)
+		{
+			sf::Packet textureInfo;
+			textureInfo << static_cast<sf::Int32>(Server::PacketType::TextureInfo);
+			textureInfo << pair.first;
+			textureInfo << static_cast<sf::Int32>(pair.second.texture);
+			sendToAll(textureInfo);
+		}
+		
+
 	} break;
 
 	case static_cast<int>(Client::PacketType::RequestCoopPartner):
@@ -318,12 +357,13 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 
 	case static_cast<int>(Client::PacketType::RequestStartGame):
 	{
-		
-
 		// Inform every other peer that we are exiting lobbystate
 		sf::Packet gameOverPacket;
 		gameOverPacket << static_cast<sf::Int32>(Server::PacketType::StartGame);
 		sendToAll(gameOverPacket);
+		mLobbyState = false;
+		mClock.restart();
+		mListeningState = false;
 
 	} break;
 
@@ -377,12 +417,25 @@ void GameServer::handleIncomingConnections()
 	if (!mListeningState)
 		return;
 
-	if (mListenerSocket.accept(mPeers[mConnectedPlayers]->socket) == sf::TcpListener::Done)
+	if (mListenerSocket.accept(mPeers[mConnectedPlayers]->socket) == sf::TcpListener::Done && mLobbyState)
 	{
 		// order the new client to spawn its own plane ( player 1 )
 		//TODO - apply Spawnpoint here 
-		mShipInfo[mShipIdentifierCounter].position = sf::Vector2f(mBattleFieldRect.width / 2, mBattleFieldRect.top + mBattleFieldRect.height / 2);
-		mShipInfo[mShipIdentifierCounter].hitpoints = 100;
+		
+		while (true)
+		{
+			int rando = rand() % 2;
+			SpawnPoint * s = mSpawnList[rando];
+			if (s->shipIdentifier == -1)
+			{
+				mShipInfo[mShipIdentifierCounter].position = s->position;
+				mShipInfo[mShipIdentifierCounter].hitpoints = 100;
+				mShipInfo[mShipIdentifierCounter].rotation = s->rotation;
+				s->shipIdentifier = mShipIdentifierCounter;
+				break;
+			}
+		}
+		
 		
 
 		sf::Packet packet;
@@ -390,8 +443,11 @@ void GameServer::handleIncomingConnections()
 		packet << mShipIdentifierCounter;
 		packet << mShipInfo[mShipIdentifierCounter].position.x;
 		packet << mShipInfo[mShipIdentifierCounter].position.y;
+		packet << static_cast<sf::Int32>(mShipInfo[mShipIdentifierCounter].texture);
 
 		mPeers[mConnectedPlayers]->shipIdentifiers.push_back(mShipIdentifierCounter);
+
+		
 
 		broadcastMessage("New player!");
 		informWorldState(mPeers[mConnectedPlayers]->socket);
@@ -420,6 +476,12 @@ void GameServer::handleDisconnections()
 			for (sf::Int32 identifier : (*itr)->shipIdentifiers)
 			{
 				sendToAll(sf::Packet() << static_cast<sf::Int32>(Server::PacketType::PlayerDisconnect) << identifier);
+
+				for (SpawnPoint* spawn : mSpawnList)
+				{
+					if (spawn->shipIdentifier == identifier)
+						spawn->shipIdentifier = -1;
+				}
 
 				mShipInfo.erase(identifier);
 			}
@@ -457,7 +519,12 @@ void GameServer::informWorldState(sf::TcpSocket& socket)
 		if (mPeers[i]->ready)
 		{
 			for (sf::Int32 identifier : mPeers[i]->shipIdentifiers)
-				packet << identifier << mShipInfo[identifier].position.x << mShipInfo[identifier].position.y << mShipInfo[identifier].hitpoints;
+			{
+				sf::Int32 texture = static_cast<sf::Int32>(mShipInfo[identifier].texture);
+				packet << identifier << mShipInfo[identifier].position.x << mShipInfo[identifier].position.y
+					<< mShipInfo[identifier].hitpoints;
+			}
+				
 		}
 	}
 
@@ -500,4 +567,8 @@ void GameServer::updateClientState()
 		<< ship.second.rotation << ship.second.hitpoints;
 
 	sendToAll(updateClientStatePacket);
+}
+
+GameServer::SpawnPoint::SpawnPoint(sf::Vector2f position, float rotation, sf::Int32 shipIdentifier) : position(position), rotation(rotation), shipIdentifier(shipIdentifier)
+{
 }

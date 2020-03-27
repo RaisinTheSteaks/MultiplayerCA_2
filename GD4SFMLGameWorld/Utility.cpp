@@ -11,6 +11,7 @@ D00183790
 #include <cmath>
 #include <ctime>
 #include <cassert>
+#include <fstream>
 
 namespace
 {
@@ -181,5 +182,48 @@ std::string toString(sf::Keyboard::Key key)
 	}
 
 	return "";
+}
+
+TextureID getTextureFromFile()
+{
+	{ // Try to open existing file (RAII block)
+		std::ifstream inputFile("shipTexture.txt");
+		std::string texture;
+		if (inputFile >> texture)
+		{
+			if (texture == "Ship")
+			{
+				return TextureID::ShipForward;
+			}
+			else if (texture == "Frigate")
+			{
+				return TextureID::FrigateForward;
+			}
+		}
+	}
+
+	// If open/read failed, create new file
+	std::ofstream outputFile("shipTexture.txt");
+	std::string defaultTexture = "Ship";
+	outputFile << defaultTexture;
+	return TextureID::ShipForward;
+}
+
+void writeTextureToFile(TextureID texture)
+{
+	std::string input;
+
+	if (texture == TextureID::ShipForward)
+	{
+		input = "Ship";
+	}
+	else if (texture == TextureID::FrigateForward)
+	{
+		input = "Frigate";
+	}
+
+	std::ofstream out("shipTexture.txt");
+	out << input;
+	out.close();
 }
 

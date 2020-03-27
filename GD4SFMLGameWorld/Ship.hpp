@@ -17,7 +17,7 @@ D00183790
 class Ship : public Entity
 {
 public:
-	Ship(ShipID type, const TextureHolder& textures, const FontHolder& fonts);
+	Ship(ShipID type, TextureHolder& textures, const FontHolder& fonts);
 	virtual unsigned int getCategory() const;
 	virtual sf::FloatRect getBoundingRect() const;
 
@@ -40,6 +40,8 @@ public:
 	void increaseFireRate();
 	void increaseSpread();
 	void collectMissiles(unsigned int count);
+
+	void setTexture(TextureID texture);
 	
 	void playerLocalSound(CommandQueue& command, SoundEffectID effect);
 	sf::Vector2f getDirectionVec();
@@ -100,4 +102,6 @@ private:
 	int mIdentifier;
 
 	Animation mForward;
+	Animation mFrigateForward;
+	TextureHolder* mTextureHolder;
 };

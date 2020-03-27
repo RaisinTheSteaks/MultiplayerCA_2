@@ -219,6 +219,7 @@ void World::loadTextures()
 
 	mTextures.load(TextureID::FrigateForward, "Media/Textures/RomanShips/forwardFrigate.png");
 	mTextures.load(TextureID::ShipForward, "Media/Textures/RomanShips/ShipSpriteSheet.png");
+	mTextures.load(TextureID::PirateForward, "Media/Textures/RomanShips/PirateShipSprite.png");
 }
 
 bool matchesCategories(SceneNode::Pair& colliders, CategoryID type1, CategoryID type2)
@@ -296,8 +297,13 @@ void World::handleCollisions()
 			*/
 
 			// Apply projectile damage to Ship, destroy projectile
-			ship.damage(projectile.getDamage());
-			projectile.destroy();
+
+			if (ship.getIdentifier() != projectile.getFirerID())
+			{
+				ship.damage(projectile.getDamage());
+				projectile.destroy();
+			}
+			
 		}
 
 		//player to island collision

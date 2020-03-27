@@ -3,10 +3,12 @@ Charlie Duff
 D00183790
 */
 #include "SettingsState.hpp"
+#include "Utility.hpp"
 
 SettingState::SettingState(StateStack& stack, Context context)
 	:State(stack, context)
 	, mGUIContainer()
+	, mTextureID(getTextureFromFile())
 {
 	mBackgroundSprite.setTexture(context.textures->get(TextureID::TitleScreen));
 	//Build key bindings and button labels
@@ -22,10 +24,33 @@ SettingState::SettingState(StateStack& stack, Context context)
 
 	updateLabels();
 
+
+	auto spriteButton = std::make_shared<GUI::Button>(context);
+	spriteButton->setPosition(900.f, 420.f);
+	spriteButton->setText("Change Ship");
+	spriteButton->setCallback([this]()
+	{
+			sf::Int32 nextSprite = (static_cast<sf::Int32>(mTextureID) + 1) % (static_cast<sf::Int32>(TextureID::FrigateForward) + 1);
+			if (nextSprite == 0)
+				nextSprite = static_cast<sf::Int32>(TextureID::ShipForward);
+			mTextureID = static_cast<TextureID>(nextSprite);
+			updateSpriteLabel();
+	});
+	mGUIContainer.pack(spriteButton);
+
+	mSpriteLabel = std::make_shared<GUI::Label>(textureIDToString(mTextureID), *context.fonts);
+	mSpriteLabel->setPosition(990, 480.f);
+	mGUIContainer.pack(mSpriteLabel);
+
 	auto backButton = std::make_shared<GUI::Button>(context);
 	backButton->setPosition(80.f, 620.f);
 	backButton->setText("Back");
-	backButton->setCallback(std::bind(&SettingState::requestStackPop, this));
+	backButton->setCallback([this]()
+		{
+			writeTextureToFile(mTextureID);
+			requestStackPop();
+			
+		});
 
 	mGUIContainer.pack(backButton);
 	
@@ -96,6 +121,11 @@ void SettingState::updateLabels()
 	}
 }
 
+void SettingState::updateSpriteLabel()
+{
+	mSpriteLabel->setText(textureIDToString(mTextureID));
+}
+
 void SettingState::addButtonLabel(std::size_t index, std::size_t x, std::size_t y, const std::string& text, Context context)
 {
 	// For x==0, start at index 0, otherwise start at half of array
@@ -112,4 +142,16 @@ void SettingState::addButtonLabel(std::size_t index, std::size_t x, std::size_t 
 	mGUIContainer.pack(mBindingButtons[index]);
 	mGUIContainer.pack(mBindingLabels[index]);
 
+}
+
+std::string SettingState::textureIDToString(TextureID texture)
+{
+	if (mTextureID == TextureID::ShipForward)
+	{
+		return "Ship";
+	}
+	else if (mTextureID == TextureID::FrigateForward)
+	{
+		return "Frigate";
+	}
 }

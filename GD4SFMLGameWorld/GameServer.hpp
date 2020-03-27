@@ -8,6 +8,7 @@
 #include <SFML/Network/TcpListener.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 #include "GameActionID.hpp"
+#include "TextureID.hpp"
 
 #include <vector>
 #include <memory>
@@ -51,6 +52,7 @@ private:
 		sf::Vector2f				position;
 		sf::Int32					hitpoints;
 		float						rotation;
+		TextureID					texture;
 		std::map<sf::Int32, bool>	realtimeActions;
 	};
 

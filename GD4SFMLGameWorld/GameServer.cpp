@@ -4,6 +4,7 @@
 #include "Pickup.hpp"
 #include "Aircraft.hpp"
 
+
 #include <iostream>
 
 #include <SFML/Network/Packet.hpp>
@@ -283,8 +284,6 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 		packet >> shipIdentifier >> action;
 		notifyPlayerEvent(shipIdentifier, action);
 		
-
-		
 	} break;
 
 	case static_cast<int>(Client::PacketType::PlayerRealtimeChange):
@@ -295,6 +294,31 @@ void GameServer::handleIncomingPacket(sf::Packet& packet, RemotePeer & receiving
 		packet >> shipIdentifier >> action >> actionEnabled;
 		mShipInfo[shipIdentifier].realtimeActions[action] = actionEnabled;
 		notifyPlayerRealtimeChange(shipIdentifier, action, actionEnabled);
+	} break;
+
+	case static_cast<int>(Client::PacketType::SendTexture):
+	{
+		sf::Int32 texture;
+		sf::Int32 shipIdentifier;
+
+		packet >> shipIdentifier;
+		packet >> texture;
+		mShipInfo[shipIdentifier].texture = static_cast<TextureID>(texture);
+
+		for (auto const& pair : mShipInfo) {
+			std::cout << "{" << pair.first << ": " << static_cast<sf::Int32>(pair.second.texture) << "}" << std::endl;
+		}
+
+		for (auto const& pair : mShipInfo)
+		{
+			sf::Packet textureInfo;
+			textureInfo << static_cast<sf::Int32>(Server::PacketType::TextureInfo);
+			textureInfo << pair.first;
+			textureInfo << static_cast<sf::Int32>(pair.second.texture);
+			sendToAll(textureInfo);
+		}
+		
+
 	} break;
 
 	case static_cast<int>(Client::PacketType::RequestCoopPartner):
@@ -393,7 +417,7 @@ void GameServer::handleIncomingConnections()
 	if (!mListeningState)
 		return;
 
-	if (mListenerSocket.accept(mPeers[mConnectedPlayers]->socket) == sf::TcpListener::Done)
+	if (mListenerSocket.accept(mPeers[mConnectedPlayers]->socket) == sf::TcpListener::Done && mLobbyState)
 	{
 		// order the new client to spawn its own plane ( player 1 )
 		//TODO - apply Spawnpoint here 
@@ -419,8 +443,11 @@ void GameServer::handleIncomingConnections()
 		packet << mShipIdentifierCounter;
 		packet << mShipInfo[mShipIdentifierCounter].position.x;
 		packet << mShipInfo[mShipIdentifierCounter].position.y;
+		packet << static_cast<sf::Int32>(mShipInfo[mShipIdentifierCounter].texture);
 
 		mPeers[mConnectedPlayers]->shipIdentifiers.push_back(mShipIdentifierCounter);
+
+		
 
 		broadcastMessage("New player!");
 		informWorldState(mPeers[mConnectedPlayers]->socket);
@@ -492,7 +519,12 @@ void GameServer::informWorldState(sf::TcpSocket& socket)
 		if (mPeers[i]->ready)
 		{
 			for (sf::Int32 identifier : mPeers[i]->shipIdentifiers)
-				packet << identifier << mShipInfo[identifier].position.x << mShipInfo[identifier].position.y << mShipInfo[identifier].hitpoints;
+			{
+				sf::Int32 texture = static_cast<sf::Int32>(mShipInfo[identifier].texture);
+				packet << identifier << mShipInfo[identifier].position.x << mShipInfo[identifier].position.y
+					<< mShipInfo[identifier].hitpoints;
+			}
+				
 		}
 	}
 

@@ -41,7 +41,7 @@ namespace
 //	return TextureID::Battleship;
 //}
 
-Ship::Ship(ShipID type, const TextureHolder& textures, const FontHolder& fonts)
+Ship::Ship(ShipID type, TextureHolder& textures, const FontHolder& fonts)
 	: Entity(Table[static_cast<int>(type)].hitpoints)
 	, mType(type)
 	, mSprite(textures.get(Table[static_cast<int>(type)].texture), Table[static_cast<int>(type)].textureRect)
@@ -69,6 +69,7 @@ Ship::Ship(ShipID type, const TextureHolder& textures, const FontHolder& fonts)
 	, mIdentifier(0)
 	, mPickupsEnabled(true)
 	, mExplosionBegan(false)
+	, mTextureHolder(&textures)
 {
 
 
@@ -262,6 +263,12 @@ void Ship::increaseSpread()
 void Ship::collectMissiles(unsigned int count)
 {
 	mMissileAmmo += count;
+}
+
+void Ship::setTexture(TextureID texture)
+{ 
+	mSprite.setTexture(mTextureHolder->get(texture));
+	mForward.setTexture(mTextureHolder->get(texture));
 }
 
 void Ship::playerLocalSound(CommandQueue& commands, SoundEffectID effect)

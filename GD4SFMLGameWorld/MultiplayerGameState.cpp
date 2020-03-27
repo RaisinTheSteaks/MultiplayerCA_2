@@ -9,6 +9,8 @@
 #include <iostream>
 
 
+
+
 sf::IpAddress getAddressFromFile()
 {
 	{ // Try to open existing file (RAII block)
@@ -49,7 +51,8 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	mPlayerInvitationText.setCharacterSize(20);
 	mPlayerInvitationText.setFillColor(sf::Color::White);
 	mPlayerInvitationText.setString("Press Enter to start the game!");
-	mPlayerInvitationText.setPosition(1000 - mPlayerInvitationText.getLocalBounds().width, 760 - mPlayerInvitationText.getLocalBounds().height);
+	centreOrigin(mPlayerInvitationText);
+	mPlayerInvitationText.setPosition(mWindow.getSize().x / 2.f, mWindow.getSize().y / 2.f);
 
 	// We reuse this text for "Attempt to connect" and "Failed to connect" messages
 	mFailedConnectionText.setFont(context.fonts->get(FontID::Alternate));
@@ -62,12 +65,12 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	int min = static_cast<int>(mTimer.asSeconds()) / 60;
 	int sec = static_cast<int>(mTimer.asSeconds()) % 60;
 	std::string time = std::to_string(min) + ":" + std::to_string(sec);
-	mTimerText.setFont(context.fonts->get(FontID::Main));
+	mTimerText.setFont(context.fonts->get(FontID::Alternate));
 	mTimerText.setString(time);
-	mTimerText.setCharacterSize(20);
+	mTimerText.setCharacterSize(30);
 	mTimerText.setFillColor(sf::Color::White);
 	centreOrigin(mTimerText);
-	mTimerText.setPosition(mWindow.getSize().x / 2.f, mWindow.getSize().y / 2.f);
+	mTimerText.setPosition(mWindow.getSize().x / 2.f, mWindow.getSize().y / 12.f);
 
 	// Render a "establishing connection" frame for user feedback
 	mWindow.clear(sf::Color::Black);
@@ -88,7 +91,12 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	}
 
 	if (mSocket.connect(ip, ServerPort, sf::seconds(5.f)) == sf::TcpSocket::Done)
+	{
 		mConnected = true;
+
+
+
+	}
 	else
 		mFailedConnectionClock.restart();
 
@@ -379,15 +387,19 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 		//TODO - check if int32 is best for ship id
 		sf::Int32 shipIdentifier;
 		sf::Vector2f shipPosition;
-
-
 		//TODO - receive a struct type of Spawnpoint that contains pos x, pos y, and direction.
 		packet >> shipIdentifier >> shipPosition.x >> shipPosition.y;
+
+		sf::Packet packet;
+		packet << static_cast<sf::Int32>(Client::PacketType::SendTexture);
+		packet << shipIdentifier;
+		packet << static_cast<sf::Int32>(getTextureFromFile());
+		mSocket.send(packet);
 
 		//TODO - add addShip into World class
 		Ship* ship = mWorld.addShip(shipIdentifier);
 		ship->setPosition(shipPosition);
-
+		ship->setTexture(getTextureFromFile());
 		//TODO - modify Player to handle 2 different key set (John Screencast)
 		mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, getContext().keys1));
 		mLocalPlayerIdentifiers.push_back(shipIdentifier);
@@ -445,7 +457,6 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 
 			//TODO - check if setHitPoints is pre-existing method or new method
 			ship->setHitpoints(hitpoints);
-
 			//TODO - change Player constructor to handle socket
 			mPlayers[shipIdentifier].reset(new Player(&mSocket, shipIdentifier, nullptr));
 		}
@@ -496,6 +507,16 @@ void MultiplayerGameState::handlePacket(sf::Int32 packetType, sf::Packet& packet
 	case static_cast<int>(Server::PacketType::GameOver) :
 	{
 		requestStackPush(StateID::GameOver);
+	} break;
+
+	case static_cast<int>(Server::PacketType::TextureInfo) :
+	{
+		sf::Int32 shipIdentifier;
+		sf::Int32 texture;
+		packet >> shipIdentifier >> texture;
+
+		mWorld.getShip(shipIdentifier)->setTexture(static_cast<TextureID>(texture));
+
 	} break;
 
 	case static_cast<int>(Server::PacketType::StartGame) :
